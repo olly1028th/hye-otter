@@ -1,0 +1,37 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 물결 -->
+  <ellipse cx="150" cy="275" rx="90" ry="12" fill="#87CEEB" opacity="0.3"/>
+  <!-- 꼬리 -->
+  <ellipse cx="68" cy="230" rx="18" ry="8" fill="#8B6914" transform="rotate(-30 68 230)"/>
+  <!-- 몸 -->
+  <ellipse cx="150" cy="195" rx="62" ry="75" fill="#A0783C"/>
+  <!-- 배 -->
+  <ellipse cx="150" cy="210" rx="42" ry="52" fill="#D4B87A"/>
+  <!-- 왼팔 -->
+  <path d="M95 175 Q70 195 80 225" stroke="#8B6914" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- 오른팔 -->
+  <path d="M205 175 Q230 195 220 225" stroke="#8B6914" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <!-- 왼발 -->
+  <ellipse cx="120" cy="268" rx="18" ry="8" fill="#8B6914"/>
+  <!-- 오른발 -->
+  <ellipse cx="180" cy="268" rx="18" ry="8" fill="#8B6914"/>
+  <!-- 머리 -->
+  <circle cx="150" cy="105" r="55" fill="#A0783C"/>
+  <!-- 얼굴 안쪽 -->
+  <circle cx="150" cy="112" r="40" fill="#D4B87A"/>
+  <!-- 왼쪽 귀 -->
+  <circle cx="108" cy="65" r="12" fill="#8B6914"/>
+  <circle cx="108" cy="65" r="7" fill="#D4B87A"/>
+  <!-- 오른쪽 귀 -->
+  <circle cx="192" cy="65" r="12" fill="#8B6914"/>
+  <circle cx="192" cy="65" r="7" fill="#D4B87A"/>
+  <!-- 코 -->
+  <ellipse cx="150" cy="118" rx="8" ry="5" fill="#4A3520"/>
+  <!-- 눈 -->
+  <circle cx="132" cy="100" r="5" fill="#2C1810"/>
+  <circle cx="168" cy="100" r="5" fill="#2C1810"/>
+  <circle cx="134" cy="98" r="2" fill="#FFF"/>
+  <circle cx="170" cy="98" r="2" fill="#FFF"/>
+  <!-- 입 -->
+  <path d="M140 128 Q150 136 160 128" stroke="#4A3520" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

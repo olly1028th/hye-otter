@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>혜달이의 상태 - 공유</title>
+  <meta name="description" content="혜달이가 지금 뭘 하고 있는지 확인해보세요!">
+  <meta property="og:title" content="혜달이의 상태">
+  <meta property="og:description" content="혜달이가 지금 뭘 하고 있는지 확인해보세요!">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .shared-view {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .shared-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .shared-mood {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 12px 0 4px;
+    }
+    .shared-message {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+    .shared-timer-status {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .shared-timer-status.focus {
+      background: #FFF0E6;
+      color: var(--accent-dark);
+    }
+    .shared-timer-status.break {
+      background: #E8F8EC;
+      color: #3A8F50;
+    }
+    .shared-todos {
+      text-align: left;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 20px;
+      margin-top: 16px;
+    }
+    .shared-todos h3 {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+    .shared-todos li {
+      font-size: 0.9rem;
+      padding: 6px 0;
+      border-bottom: 1px solid #F0E8DD;
+      list-style: none;
+    }
+    .shared-todos li:last-child {
+      border-bottom: none;
+    }
+    .shared-link-back {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .shared-link-back:hover {
+      text-decoration: underline;
+    }
+    .shared-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-light);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1 class="header__title">혜달이의 상태</h1>
+      <span class="shared-badge">공유된 상태</span>
+    </header>
+
+    <!-- 혜달이 캐릭터 영역 -->
+    <section class="otter-area">
+      <div id="otter-container" class="otter-container"></div>
+      <div id="otter-speech" class="otter-speech" hidden>
+        <p id="otter-speech-text"></p>
+      </div>
+    </section>
+
+    <!-- 공유 콘텐츠 -->
+    <div id="shared-content" class="shared-view">
+      <!-- JS로 채워집니다 -->
+    </div>
+
+    <!-- 데이터가 없을 때 -->
+    <div id="shared-empty" class="shared-empty" hidden>
+      <p>공유된 상태가 없어요!</p>
+      <a href="index.html" class="shared-link-back">혜달이 만나러 가기 →</a>
+    </div>
+  </div>
+
+  <script src="js/otter-svg.js"></script>
+  <script>
+    (function() {
+      'use strict';
+
+      const moodNames = {
+        happy: '행복해 😊',
+        focused: '집중! 🔥',
+        tired: '피곤해 😴',
+        stressed: '힘들어 😰',
+        excited: '신나! 🥳',
+        bored: '심심해 😑',
+        loved: '사랑해 🥰',
+        hungry: '배고파 🍽️',
+        default: '기본 🦦',
+        eating: '냠냠 중 🐟',
+        playing: '놀고 있어 ⚽',
+        sleeping: '자는 중 💤',
+      };
+
+      function decodeState() {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has('m') && !params.has('h')) return null;
+
+        const data = {};
+        if (params.has('m')) data.mood = params.get('m');
+        if (params.has('h')) data.hunger = Number(params.get('h'));
+        if (params.has('hp')) data.happiness = Number(params.get('hp'));
+        if (params.has('e')) data.energy = Number(params.get('e'));
+        if (params.has('lv')) data.level = Number(params.get('lv'));
+        if (params.has('tr')) data.timerRunning = true;
+        if (params.has('tb')) data.timerBreak = true;
+        if (params.has('pc')) data.pomoCount = Number(params.get('pc'));
+        if (params.has('msg')) data.message = params.get('msg');
+        if (params.has('td')) {
+          try { data.todos = JSON.parse(params.get('td')); } catch (e) { /* 무시 */ }
+        }
+        return data;
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function renderSharedView(data) {
+        // 혜달이 렌더링
+        OtterSVG.mount('otter-container', data.mood || 'default');
+
+        const $content = document.getElementById('shared-content');
+        if (!$content) return;
+
+        let html = '';
+
+        // 기분
+        const moodName = moodNames[data.mood] || moodNames.default;
+        html += `<div class="shared-mood">${escapeHtml(moodName)}</div>`;
+
+        // 메시지
+        if (data.message) {
+          html += `<div class="shared-message">"${escapeHtml(data.message)}"</div>`;
+        }
+
+        // 타이머 상태
+        if (data.timerRunning) {
+          if (data.timerBreak) {
+            html += `<div class="shared-timer-status break">☕ 휴식 중</div>`;
+          } else {
+            html += `<div class="shared-timer-status focus">🍅 집중 중</div>`;
+          }
+        }
+
+        // 상태바
+        if (data.hunger != null) {
+          html += `
+            <div class="stats-bar" style="margin-top:16px">
+              <div class="stat">
+                <span class="stat__label">배고픔</span>
+                <div class="stat__bar"><div class="stat__fill stat__fill--hunger" style="width:${data.hunger}%"></div></div>
+              </div>
+              <div class="stat">
+                <span class="stat__label">행복도</span>
+                <div class="stat__bar"><div class="stat__fill stat__fill--happiness" style="width:${data.happiness || 50}%"></div></div>
+              </div>
+              <div class="stat">
+                <span class="stat__label">에너지</span>
+                <div class="stat__bar"><div class="stat__fill stat__fill--energy" style="width:${data.energy || 50}%"></div></div>
+              </div>
+            </div>
+          `;
+        }
+
+        // 레벨
+        if (data.level) {
+          html += `<p style="font-size:0.9rem;color:var(--text-light);margin-top:8px">혜달이 Lv.${data.level}</p>`;
+        }
+
+        // 뽀모도로 횟수
+        if (data.pomoCount) {
+          html += `<p style="font-size:0.85rem;color:var(--text-light)">오늘 뽀모도로 ${data.pomoCount}회 완료!</p>`;
+        }
+
+        // 할 일 목록
+        if (data.todos && data.todos.length > 0) {
+          html += `<div class="shared-todos"><h3>할 일 목록</h3><ul>`;
+          data.todos.forEach(text => {
+            html += `<li>${escapeHtml(text)}</li>`;
+          });
+          html += `</ul></div>`;
+        }
+
+        html += `<a href="index.html" class="shared-link-back">나도 혜달이 키우러 가기 →</a>`;
+
+        $content.innerHTML = html;
+      }
+
+      // 초기화
+      const data = decodeState();
+      if (data) {
+        renderSharedView(data);
+      } else {
+        document.getElementById('shared-content').hidden = true;
+        document.getElementById('shared-empty').hidden = false;
+        OtterSVG.mount('otter-container', 'default');
+      }
+    })();
+  </script>
+</body>
+</html>
