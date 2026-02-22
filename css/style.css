@@ -714,17 +714,160 @@ body {
 }
 
 /* ===== 반응형 ===== */
+
+/* safe-area 대응 (노치/다이나믹 아일랜드) */
+#app {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* 탭 터치 영역 확보 (최소 44px) */
+.tab {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 삭제 버튼 터치 디바이스 대응 */
+@media (hover: none) and (pointer: coarse) {
+  .todo__delete {
+    opacity: 0.7;
+  }
+
+  .care__btn:hover {
+    transform: none;
+  }
+
+  .mood__btn:hover {
+    transform: none;
+  }
+}
+
+/* 일반 모바일 (414px 이하) */
+@media (max-width: 414px) {
+  .header__title {
+    font-size: 1.2rem;
+  }
+
+  .timer__display {
+    font-size: 3.2rem;
+    padding: 12px 0;
+  }
+
+  .timer__settings {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .modal__content {
+    width: 94%;
+    padding: 20px 16px;
+  }
+
+  .modal__link-area {
+    flex-direction: column;
+  }
+
+  .modal__link-area .btn {
+    width: 100%;
+  }
+}
+
+/* 작은 모바일 (360px 이하) */
 @media (max-width: 360px) {
+  #app {
+    padding: 0 12px 24px;
+  }
+
+  .header__title {
+    font-size: 1.1rem;
+  }
+
   .mood__grid {
     grid-template-columns: repeat(3, 1fr);
   }
 
   .timer__display {
-    font-size: 3rem;
+    font-size: 2.8rem;
+  }
+
+  .timer__controls .btn {
+    min-width: 76px;
+    font-size: 0.82rem;
+    padding: 8px 12px;
   }
 
   .stats-bar {
     flex-direction: column;
     gap: 6px;
+  }
+
+  .tab {
+    font-size: 0.78rem;
+    padding: 8px 0;
+  }
+
+  .otter-container {
+    width: 160px;
+    height: 160px;
+  }
+
+  .care__actions {
+    gap: 8px;
+  }
+
+  .care__btn {
+    padding: 12px;
+  }
+
+  .care__icon {
+    font-size: 1.6rem;
+  }
+}
+
+/* 아주 작은 화면 (320px 이하, iPhone SE 등) */
+@media (max-width: 320px) {
+  #app {
+    padding: 0 8px 20px;
+  }
+
+  .timer__display {
+    font-size: 2.4rem;
+  }
+
+  .mood__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tab {
+    font-size: 0.72rem;
+  }
+
+  .otter-container {
+    width: 140px;
+    height: 140px;
+  }
+
+  .care__actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
+
+/* 가로 모드 모바일 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .otter-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  .otter-area {
+    padding: 4px 0;
+  }
+
+  .tab-content {
+    min-height: 180px;
   }
 }
