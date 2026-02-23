@@ -1,12 +1,13 @@
 """
-혜달이 서버리스 공유 DB 모듈
-Vercel 서버리스 환경에서는 /tmp 에 SQLite 저장
+혜달이 서버리스 공유 DB 모듈 - Supabase 연동
+환경변수: SUPABASE_URL, SUPABASE_KEY
 """
-import sqlite3
-import time
 import os
+import time
+from supabase import create_client
 
-DB_PATH = '/tmp/hyeotter.db'
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 
 DECAY_PER_MIN = {
     'fullness': 2,
@@ -15,59 +16,58 @@ DECAY_PER_MIN = {
 }
 
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+def get_sb():
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-def init_db():
-    conn = get_db()
-    conn.execute('''CREATE TABLE IF NOT EXISTS otter_stats (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        fullness REAL NOT NULL DEFAULT 50,
-        cleanliness REAL NOT NULL DEFAULT 50,
-        happiness REAL NOT NULL DEFAULT 50,
-        exp INTEGER NOT NULL DEFAULT 0,
-        level INTEGER NOT NULL DEFAULT 1,
-        last_update REAL NOT NULL
-    )''')
-    conn.execute(
-        'INSERT OR IGNORE INTO otter_stats (id, last_update) VALUES (1, ?)',
-        (time.time(),)
-    )
-    conn.commit()
-    conn.close()
+def get_row(sb):
+    res = sb.table('otter_stats').select('*').eq('id', 1).execute()
+    if res.data:
+        return res.data[0]
+    # 첫 실행: 초기 데이터 삽입
+    sb.table('otter_stats').insert({
+        'id': 1,
+        'fullness': 50,
+        'cleanliness': 50,
+        'happiness': 50,
+        'exp': 0,
+        'level': 1,
+        'last_update': time.time(),
+    }).execute()
+    return sb.table('otter_stats').select('*').eq('id', 1).execute().data[0]
 
 
 def clamp(v):
     return round(max(0, min(100, v)), 1)
 
 
-def apply_decay(conn):
-    row = conn.execute('SELECT * FROM otter_stats WHERE id = 1').fetchone()
+def apply_decay(sb, row):
     now = time.time()
     elapsed = (now - row['last_update']) / 60
 
     if elapsed < 0.05:
-        return
+        return row
 
     fullness = max(0, row['fullness'] - elapsed * DECAY_PER_MIN['fullness'])
     cleanliness = max(0, row['cleanliness'] - elapsed * DECAY_PER_MIN['cleanliness'])
     happiness = max(0, row['happiness'] - elapsed * DECAY_PER_MIN['happiness'])
 
-    conn.execute(
-        '''UPDATE otter_stats SET
-        fullness=?, cleanliness=?, happiness=?, last_update=?
-        WHERE id=1''',
-        (fullness, cleanliness, happiness, now)
-    )
-    conn.commit()
+    sb.table('otter_stats').update({
+        'fullness': fullness,
+        'cleanliness': cleanliness,
+        'happiness': happiness,
+        'last_update': now,
+    }).eq('id', 1).execute()
+
+    row = dict(row)
+    row.update(fullness=fullness, cleanliness=cleanliness, happiness=happiness, last_update=now)
+    return row
 
 
-def get_stats_dict(conn):
-    apply_decay(conn)
-    row = conn.execute('SELECT * FROM otter_stats WHERE id = 1').fetchone()
+def get_stats_dict():
+    sb = get_sb()
+    row = get_row(sb)
+    row = apply_decay(sb, row)
     return {
         'fullness': clamp(row['fullness']),
         'cleanliness': clamp(row['cleanliness']),
@@ -79,10 +79,9 @@ def get_stats_dict(conn):
 
 
 def handle_action(action):
-    conn = get_db()
-    init_db()
-    apply_decay(conn)
-    row = conn.execute('SELECT * FROM otter_stats WHERE id = 1').fetchone()
+    sb = get_sb()
+    row = get_row(sb)
+    row = apply_decay(sb, row)
 
     fullness = row['fullness']
     cleanliness = row['cleanliness']
@@ -109,7 +108,6 @@ def handle_action(action):
         otter_state = 'happy'
         exp += 5
     else:
-        conn.close()
         return {'ok': False, 'msg': '알 수 없는 행동이에요'}
 
     leveled = False
@@ -119,16 +117,24 @@ def handle_action(action):
         level += 1
         leveled = True
 
-    conn.execute(
-        '''UPDATE otter_stats SET
-        fullness=?, cleanliness=?, happiness=?, exp=?, level=?, last_update=?
-        WHERE id=1''',
-        (fullness, cleanliness, happiness, exp, level, time.time())
-    )
-    conn.commit()
+    sb.table('otter_stats').update({
+        'fullness': fullness,
+        'cleanliness': cleanliness,
+        'happiness': happiness,
+        'exp': exp,
+        'level': level,
+        'last_update': time.time(),
+    }).eq('id', 1).execute()
 
-    stats = get_stats_dict(conn)
-    conn.close()
+    row_updated = sb.table('otter_stats').select('*').eq('id', 1).execute().data[0]
+    stats = {
+        'fullness': clamp(row_updated['fullness']),
+        'cleanliness': clamp(row_updated['cleanliness']),
+        'happiness': clamp(row_updated['happiness']),
+        'exp': row_updated['exp'],
+        'expNeeded': 80 + row_updated['level'] * 20,
+        'level': row_updated['level'],
+    }
 
     return {
         'ok': True,
