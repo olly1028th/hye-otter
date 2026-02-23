@@ -297,32 +297,28 @@ body {
 }
 
 .otter-container {
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   margin: 0 auto;
   position: relative;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #C8AE97 0%, #A1887F 60%);
-  border: 5px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  overflow: visible;
+  background: transparent;
+  border: 6px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .otter-container svg {
   width: 100%;
   height: 100%;
+  display: block;
 }
 
-/* 볼터치 효과 */
+/* 볼터치 효과는 SVG 오버레이에서 처리하므로 CSS pseudo 제거 */
 .otter-container::before,
 .otter-container::after {
-  content: '';
-  position: absolute;
-  width: 28px;
-  height: 14px;
-  background: #FFAB91;
-  border-radius: 50%;
-  filter: blur(6px);
+  content: none;
+}
   opacity: 0.5;
   top: 55%;
   z-index: 5;
@@ -330,12 +326,10 @@ body {
   transition: opacity 0.3s;
 }
 
-.otter-container::before { left: 18%; }
-.otter-container::after { right: 18%; }
-
-.otter-container:hover::before,
-.otter-container:hover::after {
-  opacity: 0.8;
+/* 호버 시 살짝 확대 효과 */
+.otter-container:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
 }
 
 /* ===== 웰니스 레벨별 시각 효과 (data-wellness 기반) ===== */
@@ -1182,8 +1176,8 @@ body {
   .tab__icon { font-size: 16px; }
 
   .otter-container {
-    width: 160px;
-    height: 160px;
+    width: 180px;
+    height: 180px;
   }
 
   .bottom-dock {
@@ -1219,8 +1213,8 @@ body {
   .tab__icon { font-size: 14px; }
 
   .otter-container {
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
   }
 
   .bottom-dock { gap: 10px; padding: 14px 12px 20px; }

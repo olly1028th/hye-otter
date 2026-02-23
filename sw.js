@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyeotter-v5';
+const CACHE_NAME = 'hyeotter-v6';
 const ASSETS = [
   './',
   './index.html',
