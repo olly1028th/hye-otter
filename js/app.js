@@ -1,5 +1,5 @@
 /**
- * 혜달이의 상태 - 메인 앱
+ * 혜달이의 상태 - 메인 앱 (Stitch Design + 정교한 상태 시스템)
  * 모든 모듈을 연결하고 초기화합니다.
  */
 (function App() {
@@ -15,7 +15,6 @@
     const $statusText = document.getElementById('otter-status-text');
     if ($statusText && message) $statusText.textContent = message;
 
-    // 말풍선
     if (message) showSpeech(message);
   }
 
@@ -41,7 +40,7 @@
     }, duration);
   }
 
-  // === 상태바 업데이트 ===
+  // === 상태바 업데이트 (Stitch 디자인) ===
   function updateStatusBars(stats) {
     const bars = {
       fullness: document.getElementById('fullness-bar'),
@@ -72,6 +71,25 @@
     if ($expBar) $expBar.style.width = (stats.exp / stats.expNeeded * 100) + '%';
     if ($expText) $expText.textContent = stats.exp;
     if ($expMax) $expMax.textContent = stats.expNeeded;
+
+    // 상태 변화에 따른 자동 무드 업데이트
+    updateAutoMoodDisplay();
+  }
+
+  // === 자동 무드 표시 업데이트 (정교한 상태 시스템 활용) ===
+  function updateAutoMoodDisplay() {
+    // 사용자가 수동으로 기분을 선택한 경우 자동 업데이트 스킵
+    if (Mood.getCurrent()) return;
+
+    const details = Tamagotchi.getMoodDetails();
+    const $statusText = document.getElementById('otter-status-text');
+
+    // 현재 상태와 다를 때만 업데이트 (깜빡임 방지)
+    if (currentOtterState !== details.mood) {
+      updateOtter(details.mood, details.message);
+    } else if ($statusText) {
+      $statusText.textContent = details.message;
+    }
   }
 
   // === 탭 전환 ===
@@ -91,7 +109,7 @@
     });
   }
 
-  // === 하트 플로팅 (쓰다듬기 Stitch-style) ===
+  // === 하트 플로팅 (Stitch-style) ===
   function spawnHearts() {
     const container = document.getElementById('otter-hearts');
     if (!container) return;
@@ -157,21 +175,25 @@
       btn.addEventListener('click', async () => {
         const result = await action();
         if (result.ok) {
-          // 파티클 애니메이션 발사
           spawnParticles(btn, id);
-          // 쓰다듬기면 하트 플로팅도 추가
           if (id === 'care-pet') spawnHearts();
 
+          // 액션 결과로 상태 업데이트
           updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 
           // 쿨다운 표시
           btn.classList.add('care--cooldown');
           setTimeout(() => btn.classList.remove('care--cooldown'), 3000);
 
-          // 잠시 후 기본 상태로 복귀
+          // 잠시 후 자동 무드로 복귀 (정교한 판정 사용)
           setTimeout(() => {
-            const autoMood = Mood.getCurrent() || Tamagotchi.getAutoMood();
-            updateOtter(autoMood);
+            const manualMood = Mood.getCurrent();
+            if (manualMood) {
+              updateOtter(manualMood);
+            } else {
+              const details = Tamagotchi.getMoodDetails();
+              updateOtter(details.mood, details.message);
+            }
           }, 2500);
         } else {
           showSpeech(result.msg, 2000);
@@ -197,7 +219,6 @@
       statusText.textContent = msg || '혜달이의 현재 상태예요!';
     }
 
-    // 상태바 업데이트
     if (data.fullness != null) {
       updateStatusBars({
         fullness: data.fullness,
@@ -209,7 +230,6 @@
       });
     }
 
-    // 할일 표시
     if (data.todos) {
       const $list = document.getElementById('todo-list');
       const $empty = document.getElementById('todo-empty');
@@ -248,10 +268,8 @@
 
   // === 초기화 ===
   function init() {
-    // 탭 초기화
     initTabs();
 
-    // 공유 모듈 초기화 (URL 파라미터 체크)
     const sharedData = Share.init(collectState);
 
     if (sharedData) {
@@ -269,8 +287,7 @@
       onTick: ({ isRunning, isBreak }) => {
         if (isRunning) {
           const state = isBreak ? 'happy' : 'focused';
-          const container = document.querySelector('.otter-container');
-          if (container && currentOtterState !== state) {
+          if (currentOtterState !== state) {
             updateOtter(state, isBreak ? '휴식 중~ ☕' : '집중하는 중! 🔥');
           }
         }
@@ -330,8 +347,9 @@
       Tamagotchi.destroy();
     });
 
-    // 초기 혜달이 렌더링
-    updateOtter('default', '안녕! 나는 혜달이야 🦦');
+    // 초기 혜달이 렌더링 (정교한 무드 판정 사용)
+    const initialDetails = Tamagotchi.getMoodDetails();
+    updateOtter(initialDetails.mood, '안녕! 나는 혜달이야 🦦');
   }
 
   // DOM 준비되면 시작

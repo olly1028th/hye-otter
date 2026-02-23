@@ -5,71 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>혜달이의 상태 - Otter Timer</title>
+  <title>혜달이의 상태 - Haedal Center</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#5B9BD5">
+  <meta name="theme-color" content="#2bcdee">
+  <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="app">
-    <!-- 헤더 -->
+  <div id="app" class="app-shell">
+
+    <!-- 헤더 (Stitch 스타일) -->
     <header class="header">
-      <h1 class="header__title">혜달이의 상태</h1>
-      <button id="share-btn" class="btn btn--share" title="상태 공유하기">
-        <span class="btn__icon">&#128279;</span> 공유
+      <div class="header__center">
+        <h1 class="header__title">Haedal Center</h1>
+        <div class="header__badge">
+          <span class="header__dot"></span> Online
+        </div>
+      </div>
+      <button id="share-btn" class="header__action-btn" title="상태 공유하기">
+        <span class="material-symbols-outlined">share</span>
       </button>
     </header>
 
-    <!-- 혜달이 캐릭터 영역 -->
-    <section class="otter-area">
-      <div id="otter-container" class="otter-container">
-        <!-- SVG가 JS로 삽입됩니다 -->
+    <!-- 상태 바 (Stitch glassmorphism) -->
+    <section class="stats-section">
+      <!-- 포만감 (Hunger) -->
+      <div class="stat-card">
+        <div class="stat-card__row">
+          <div class="stat-card__label">
+            <span class="material-symbols-outlined stat-icon stat-icon--hunger" style="font-variation-settings: 'FILL' 1">set_meal</span>
+            <span class="stat-card__name">포만감</span>
+          </div>
+          <span class="stat-card__value stat-card__value--hunger" id="fullness-value">50%</span>
+        </div>
+        <div class="stat-card__track">
+          <div id="fullness-bar" class="stat-card__fill stat-card__fill--hunger" style="width:50%"></div>
+        </div>
       </div>
-      <div id="otter-hearts" class="otter-hearts"></div>
+      <!-- 행복도 (Happiness) -->
+      <div class="stat-card">
+        <div class="stat-card__row">
+          <div class="stat-card__label">
+            <span class="material-symbols-outlined stat-icon stat-icon--happiness" style="font-variation-settings: 'FILL' 1">favorite</span>
+            <span class="stat-card__name">행복도</span>
+          </div>
+          <span class="stat-card__value stat-card__value--happiness" id="happiness-value">50%</span>
+        </div>
+        <div class="stat-card__track">
+          <div id="happiness-bar" class="stat-card__fill stat-card__fill--happiness" style="width:50%"></div>
+        </div>
+      </div>
+      <!-- 청결도 (Cleanliness) -->
+      <div class="stat-card">
+        <div class="stat-card__row">
+          <div class="stat-card__label">
+            <span class="material-symbols-outlined stat-icon stat-icon--cleanliness" style="font-variation-settings: 'FILL' 1">water_drop</span>
+            <span class="stat-card__name">청결도</span>
+          </div>
+          <span class="stat-card__value stat-card__value--cleanliness" id="cleanliness-value">50%</span>
+        </div>
+        <div class="stat-card__track">
+          <div id="cleanliness-bar" class="stat-card__fill stat-card__fill--cleanliness" style="width:50%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 메인 캐릭터 영역 (ocean gradient + floating) -->
+    <main class="otter-main">
+      <!-- 배경 블러 장식 -->
+      <div class="otter-main__blur otter-main__blur--left"></div>
+      <div class="otter-main__blur otter-main__blur--right"></div>
+
+      <div class="otter-area">
+        <div id="otter-container" class="otter-container floating"></div>
+        <div id="otter-hearts" class="otter-hearts"></div>
+      </div>
       <div id="otter-speech" class="otter-speech" hidden>
         <p id="otter-speech-text"></p>
       </div>
       <p id="otter-status-text" class="otter-status-text">혜달이가 기다리고 있어요!</p>
-    </section>
-
-    <!-- 다마고치 상태바 (Stitch-inspired) -->
-    <section class="stats-bar">
-      <div class="stats-bar__header">
-        <span class="stats-bar__title">혜달이의 기분</span>
-        <span class="stats-bar__level">Lv.<strong id="otter-level-top"></strong></span>
-      </div>
-      <div class="stat">
-        <div class="stat__row">
-          <span class="stat__label">포만감</span>
-          <span class="stat__value" id="fullness-value">50%</span>
-        </div>
-        <div class="stat__bar"><div id="fullness-bar" class="stat__fill stat__fill--fullness" style="width:50%"></div></div>
-      </div>
-      <div class="stat">
-        <div class="stat__row">
-          <span class="stat__label">청결도</span>
-          <span class="stat__value" id="cleanliness-value">50%</span>
-        </div>
-        <div class="stat__bar"><div id="cleanliness-bar" class="stat__fill stat__fill--cleanliness" style="width:50%"></div></div>
-      </div>
-      <div class="stat">
-        <div class="stat__row">
-          <span class="stat__label">행복도</span>
-          <span class="stat__value" id="happiness-value">50%</span>
-        </div>
-        <div class="stat__bar"><div id="happiness-bar" class="stat__fill stat__fill--happiness" style="width:50%"></div></div>
-      </div>
-    </section>
+      <!-- 파도 장식 -->
+      <div class="wave"></div>
+    </main>
 
     <!-- 탭 네비게이션 -->
     <nav class="tabs">
-      <button class="tab tab--active" data-tab="timer">타이머</button>
-      <button class="tab" data-tab="mood">기분</button>
-      <button class="tab" data-tab="todo">할 일</button>
+      <button class="tab tab--active" data-tab="timer">
+        <span class="material-symbols-outlined tab__icon">timer</span>
+        타이머
+      </button>
+      <button class="tab" data-tab="mood">
+        <span class="material-symbols-outlined tab__icon">mood</span>
+        기분
+      </button>
+      <button class="tab" data-tab="todo">
+        <span class="material-symbols-outlined tab__icon">checklist</span>
+        할 일
+      </button>
     </nav>
 
     <!-- 탭 컨텐츠 -->
-    <main class="tab-content">
+    <div class="tab-content">
       <!-- 타이머 탭 -->
       <section id="tab-timer" class="tab-panel tab-panel--active">
         <div class="timer">
@@ -152,32 +189,42 @@
           <p class="todo__empty" id="todo-empty">아직 할 일이 없어요!</p>
         </div>
       </section>
-    </main>
+    </div>
 
     <!-- 레벨 표시 -->
     <div class="care__level">
-      <p>Lv.<strong id="otter-level">1</strong></p>
-      <div class="stat__bar">
-        <div id="exp-bar" class="stat__fill stat__fill--exp" style="width:0%"></div>
+      <div class="care__level-info">
+        <span class="material-symbols-outlined care__level-icon" style="font-variation-settings: 'FILL' 1">military_tech</span>
+        <p>Lv.<strong id="otter-level">1</strong></p>
+        <span id="otter-level-top" hidden>1</span>
+      </div>
+      <div class="stat-card__track care__level-track">
+        <div id="exp-bar" class="stat-card__fill stat-card__fill--exp" style="width:0%"></div>
       </div>
       <p class="care__exp-text"><span id="exp-text">0</span> / <span id="exp-max">100</span></p>
     </div>
 
-    <!-- 하단 돌보기 버튼 (항상 표시) -->
-    <section class="bottom-bar">
-      <button id="care-feed" class="bottom-btn bottom-btn--feed">
-        <span class="bottom-btn__icon">🐚</span>
-        <span class="bottom-btn__label">조개 주기</span>
-      </button>
-      <button id="care-wash" class="bottom-btn bottom-btn--wash">
-        <span class="bottom-btn__icon">🧼</span>
-        <span class="bottom-btn__label">비누칠하기</span>
-      </button>
-      <button id="care-pet" class="bottom-btn bottom-btn--pet">
-        <span class="bottom-btn__icon">💕</span>
-        <span class="bottom-btn__label">쓰다듬기</span>
-      </button>
-    </section>
+    <!-- 하단 액션 독 (Stitch 스타일 원형 버튼) -->
+    <footer class="bottom-dock">
+      <div class="dock-action">
+        <button id="care-pet" class="dock-btn dock-btn--pet">
+          <span class="material-symbols-outlined dock-btn__icon">front_hand</span>
+        </button>
+        <span class="dock-action__label">쓰다듬기</span>
+      </div>
+      <div class="dock-action dock-action--main">
+        <button id="care-feed" class="dock-btn dock-btn--feed">
+          <span class="material-symbols-outlined dock-btn__icon" style="font-variation-settings: 'FILL' 1">set_meal</span>
+        </button>
+        <span class="dock-action__label dock-action__label--primary">조개 주기</span>
+      </div>
+      <div class="dock-action">
+        <button id="care-wash" class="dock-btn dock-btn--wash">
+          <span class="material-symbols-outlined dock-btn__icon">water_drop</span>
+        </button>
+        <span class="dock-action__label">비누칠하기</span>
+      </div>
+    </footer>
 
     <!-- 파티클 컨테이너 -->
     <div id="particles" class="particles"></div>
