@@ -1,16 +1,25 @@
 /**
- * 혜달이의 상태 - 메인 앱 (Stitch Design + 정교한 상태 시스템)
- * 모든 모듈을 연결하고 초기화합니다.
+ * 혜달이의 상태 - 메인 앱 (Stitch Design + 스탯 반응형 시스템)
+ * 스탯 수치에 따라 해달이 표정, 비주얼, 대사가 실시간으로 변합니다.
  */
 (function App() {
   'use strict';
 
   let currentOtterState = 'default';
+  let currentStats = { fullness: 50, cleanliness: 50, happiness: 50, exp: 0, expNeeded: 100, level: 1 };
 
-  // === 혜달이 캐릭터 업데이트 ===
+  // 이전 무드 (전환 감지용)
+  let prevMood = null;
+  // 유저 수동 기분 선택 타이머
+  let manualMoodTimeout = null;
+  // 아이들 메시지 로테이션 타이머
+  let idleMessageTimer = null;
+
+  // === 혜달이 캐릭터 업데이트 (스탯 기반 오버레이 포함) ===
   function updateOtter(state, message) {
     currentOtterState = state || 'default';
-    OtterSVG.mount('otter-container', currentOtterState);
+    // 스탯을 함께 전달하여 SVG 오버레이 반영
+    OtterSVG.mount('otter-container', currentOtterState, currentStats);
 
     const $statusText = document.getElementById('otter-status-text');
     if ($statusText && message) $statusText.textContent = message;
@@ -26,11 +35,10 @@
     $text.textContent = text;
     $speech.hidden = false;
 
-    // 바운스 효과
     const container = document.querySelector('.otter-container');
     if (container) {
       container.classList.remove('otter--bounce');
-      void container.offsetWidth; // reflow
+      void container.offsetWidth;
       container.classList.add('otter--bounce');
     }
 
@@ -40,8 +48,10 @@
     }, duration);
   }
 
-  // === 상태바 업데이트 (Stitch 디자인) ===
+  // === 상태바 업데이트 ===
   function updateStatusBars(stats) {
+    currentStats = { ...currentStats, ...stats };
+
     const bars = {
       fullness: document.getElementById('fullness-bar'),
       cleanliness: document.getElementById('cleanliness-bar'),
@@ -72,24 +82,54 @@
     if ($expText) $expText.textContent = stats.exp;
     if ($expMax) $expMax.textContent = stats.expNeeded;
 
-    // 상태 변화에 따른 자동 무드 업데이트
-    updateAutoMoodDisplay();
+    // 스탯 변화 → 자동 무드 판정 & 표정/대사 전환
+    reactToStatChange();
   }
 
-  // === 자동 무드 표시 업데이트 (정교한 상태 시스템 활용) ===
-  function updateAutoMoodDisplay() {
-    // 사용자가 수동으로 기분을 선택한 경우 자동 업데이트 스킵
-    if (Mood.getCurrent()) return;
+  // ============================================
+  //  핵심: 스탯 변화에 따른 자동 표정/대사 전환
+  // ============================================
+  function reactToStatChange() {
+    // 유저가 수동으로 기분 선택한 직후에는 자동 전환 스킵
+    if (manualMoodTimeout) return;
 
     const details = Tamagotchi.getMoodDetails();
-    const $statusText = document.getElementById('otter-status-text');
+    const newMood = details.mood;
 
-    // 현재 상태와 다를 때만 업데이트 (깜빡임 방지)
-    if (currentOtterState !== details.mood) {
-      updateOtter(details.mood, details.message);
-    } else if ($statusText) {
-      $statusText.textContent = details.message;
+    // 무드가 바뀌었을 때만 표정과 대사 업데이트 (깜빡임 방지)
+    if (newMood !== prevMood) {
+      prevMood = newMood;
+      updateOtter(newMood, details.message);
+    } else {
+      // 무드는 같지만 SVG 스탯 오버레이 갱신 (배고픔 라인 등)
+      OtterSVG.mount('otter-container', currentOtterState, currentStats);
     }
+
+    // 위급 경고 알림 (critical 스탯이 있으면 강조)
+    const warnings = details.warnings;
+    const criticalWarning = warnings.find(w => w.level === 'critical');
+    if (criticalWarning) {
+      const $statusText = document.getElementById('otter-status-text');
+      if ($statusText) $statusText.textContent = criticalWarning.msg;
+    }
+  }
+
+  // === 아이들 메시지 로테이션 (10초마다 상황별 대사 변경) ===
+  function startIdleMessageRotation() {
+    if (idleMessageTimer) clearInterval(idleMessageTimer);
+
+    idleMessageTimer = setInterval(() => {
+      // 수동 기분 선택 중이거나, 타이머 진행 중이면 스킵
+      if (manualMoodTimeout) return;
+      const timer = Timer.getStatus();
+      if (timer.isRunning) return;
+
+      const details = Tamagotchi.getMoodDetails();
+      const $statusText = document.getElementById('otter-status-text');
+      if ($statusText) {
+        $statusText.textContent = details.message;
+      }
+    }, 10000);
   }
 
   // === 탭 전환 ===
@@ -109,7 +149,7 @@
     });
   }
 
-  // === 하트 플로팅 (Stitch-style) ===
+  // === 하트 플로팅 ===
   function spawnHearts() {
     const container = document.getElementById('otter-hearts');
     if (!container) return;
@@ -178,22 +218,15 @@
           spawnParticles(btn, id);
           if (id === 'care-pet') spawnHearts();
 
-          // 액션 결과로 상태 업데이트
           updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 
-          // 쿨다운 표시
           btn.classList.add('care--cooldown');
           setTimeout(() => btn.classList.remove('care--cooldown'), 3000);
 
-          // 잠시 후 자동 무드로 복귀 (정교한 판정 사용)
+          // 액션 후 잠시 대기 → 새 스탯 기반 자동 무드로 부드럽게 전환
           setTimeout(() => {
-            const manualMood = Mood.getCurrent();
-            if (manualMood) {
-              updateOtter(manualMood);
-            } else {
-              const details = Tamagotchi.getMoodDetails();
-              updateOtter(details.mood, details.message);
-            }
+            prevMood = null; // 강제 재판정
+            reactToStatChange();
           }, 2500);
         } else {
           showSpeech(result.msg, 2000);
@@ -271,7 +304,6 @@
     initTabs();
 
     const sharedData = Share.init(collectState);
-
     if (sharedData) {
       showSharedView(sharedData);
       return;
@@ -303,19 +335,9 @@
       },
     });
 
-    // 기분 모듈 초기화
+    // 기분 모듈 초기화 (수동 기분 선택 → 30초 동안 자동 전환 잠금)
     Mood.init((mood) => {
-      const otterStateMap = {
-        happy: 'happy',
-        focused: 'focused',
-        tired: 'tired',
-        stressed: 'stressed',
-        excited: 'excited',
-        bored: 'bored',
-        loved: 'loved',
-        hungry: 'hungry',
-      };
-      const otterState = otterStateMap[mood] || 'default';
+      const otterState = mood || 'default';
       const messages = {
         happy: '기분이 좋구나! 나도 행복해~ 😊',
         focused: '집중 모드! 화이팅! 🔥',
@@ -327,32 +349,38 @@
         hungry: '배고프다! 맛있는 거 먹자! 🍽️',
       };
       updateOtter(otterState, messages[mood] || '');
+
+      // 수동 기분 선택 후 30초 동안 자동 전환 잠금
+      clearTimeout(manualMoodTimeout);
+      manualMoodTimeout = setTimeout(() => {
+        manualMoodTimeout = null;
+        prevMood = null;
+        reactToStatChange();
+      }, 30000);
     });
 
-    // 할일 모듈 초기화
     Todo.init();
-
-    // 돌보기 액션 바인딩
     initCareActions();
 
-    // 알림 권한 요청
     Notification_.requestPermission();
     document.addEventListener('click', function unlockAudio() {
       Notification_.playSplash && void 0;
       document.removeEventListener('click', unlockAudio);
     }, { once: true });
 
-    // 페이지 이탈 시 정리
     window.addEventListener('beforeunload', () => {
       Tamagotchi.destroy();
+      clearInterval(idleMessageTimer);
     });
 
-    // 초기 혜달이 렌더링 (정교한 무드 판정 사용)
+    // 초기 렌더링
     const initialDetails = Tamagotchi.getMoodDetails();
     updateOtter(initialDetails.mood, '안녕! 나는 혜달이야 🦦');
+
+    // 아이들 메시지 로테이션 시작
+    startIdleMessageRotation();
   }
 
-  // DOM 준비되면 시작
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

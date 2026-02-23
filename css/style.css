@@ -338,6 +338,56 @@ body {
   opacity: 0.8;
 }
 
+/* ===== 웰니스 레벨별 시각 효과 (data-wellness 기반) ===== */
+.otter-container {
+  transition: box-shadow 0.8s ease, border-color 0.8s ease;
+}
+
+/* 최고 상태: 골든 글로우 */
+.otter-container[data-wellness="max"] {
+  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 30px rgba(255, 215, 0, 0.20),
+    0 0 60px rgba(255, 215, 0, 0.08);
+}
+
+/* 좋은 상태: 은은한 블루 글로우 */
+.otter-container[data-wellness="high"] {
+  border-color: rgba(43, 205, 238, 0.4);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 0 20px rgba(43, 205, 238, 0.15);
+}
+
+/* 보통 상태: 기본 */
+.otter-container[data-wellness="medium"] {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* 낮은 상태: 살짝 어두워짐 */
+.otter-container[data-wellness="low"] {
+  border-color: rgba(148, 163, 184, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  filter: saturate(0.8);
+}
+
+/* 위급 상태: 붉은 펄스 + 채도 저하 */
+.otter-container[data-wellness="critical"] {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(239, 68, 68, 0.15);
+  filter: saturate(0.6);
+  animation: float 4s ease-in-out infinite, criticalPulse 2s ease-in-out infinite;
+}
+
+@keyframes criticalPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 0 20px rgba(239,68,68,0.15); }
+  50% { box-shadow: 0 8px 24px rgba(0,0,0,0.15), 0 0 35px rgba(239,68,68,0.30); }
+}
+
 /* 둥둥 떠다니는 애니메이션 (Stitch floating) */
 .floating {
   animation: float 4s ease-in-out infinite;
