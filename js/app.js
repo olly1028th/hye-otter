@@ -44,13 +44,13 @@
   // === 상태바 업데이트 ===
   function updateStatusBars(stats) {
     const bars = {
-      hunger: document.getElementById('hunger-bar'),
+      fullness: document.getElementById('fullness-bar'),
+      cleanliness: document.getElementById('cleanliness-bar'),
       happiness: document.getElementById('happiness-bar'),
-      energy: document.getElementById('energy-bar'),
     };
-    if (bars.hunger) bars.hunger.style.width = stats.hunger + '%';
+    if (bars.fullness) bars.fullness.style.width = stats.fullness + '%';
+    if (bars.cleanliness) bars.cleanliness.style.width = stats.cleanliness + '%';
     if (bars.happiness) bars.happiness.style.width = stats.happiness + '%';
-    if (bars.energy) bars.energy.style.width = stats.energy + '%';
 
     // 레벨 & 경험치
     const $level = document.getElementById('otter-level');
@@ -81,12 +81,44 @@
     });
   }
 
+  // === 파티클 애니메이션 ===
+  const particleEmojis = {
+    'care-feed': ['🐚', '✨', '⭐'],
+    'care-wash': ['🧼', '🫧', '💧'],
+    'care-pet': ['❤️', '💕', '💖'],
+  };
+
+  function spawnParticles(btn, type) {
+    const container = document.getElementById('particles');
+    if (!container) return;
+
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top;
+    const emojis = particleEmojis[type] || ['✨'];
+
+    for (let i = 0; i < 8; i++) {
+      const el = document.createElement('span');
+      el.className = 'particle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+      const offsetX = (Math.random() - 0.5) * 80;
+      const delay = Math.random() * 0.2;
+      el.style.left = (cx + offsetX) + 'px';
+      el.style.top = cy + 'px';
+      el.style.animationDelay = delay + 's';
+      el.style.fontSize = (1 + Math.random() * 0.8) + 'rem';
+
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }
+  }
+
   // === 돌보기 액션 바인딩 ===
   function initCareActions() {
     const actions = {
       'care-feed': () => Tamagotchi.feed(),
-      'care-play': () => Tamagotchi.play(),
-      'care-sleep': () => Tamagotchi.sleep(),
+      'care-wash': () => Tamagotchi.wash(),
       'care-pet': () => Tamagotchi.pet(),
     };
 
@@ -94,17 +126,13 @@
       const btn = document.getElementById(id);
       if (!btn) return;
 
-      btn.addEventListener('click', () => {
-        const result = action();
+      btn.addEventListener('click', async () => {
+        const result = await action();
         if (result.ok) {
-          // 액션 성공
-          const actionStates = {
-            'care-feed': 'eating',
-            'care-play': 'playing',
-            'care-sleep': 'sleeping',
-            'care-pet': 'happy',
-          };
-          updateOtter(result.leveled ? 'levelup' : (actionStates[id] || 'happy'), result.msg);
+          // 파티클 애니메이션 발사
+          spawnParticles(btn, id);
+
+          updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 
           // 쿨다운 표시
           btn.classList.add('care--cooldown');
@@ -124,7 +152,6 @@
 
   // === 공유 데이터로 읽기 전용 표시 ===
   function showSharedView(data) {
-    // 공유된 상태를 보여줍니다
     if (data.mood) {
       updateOtter(data.mood);
     }
@@ -141,11 +168,11 @@
     }
 
     // 상태바 업데이트
-    if (data.hunger != null) {
+    if (data.fullness != null) {
       updateStatusBars({
-        hunger: data.hunger,
+        fullness: data.fullness,
+        cleanliness: data.cleanliness || 50,
         happiness: data.happiness || 50,
-        energy: data.energy || 50,
         level: data.level || 1,
         exp: 0,
         expNeeded: 100,
@@ -178,9 +205,9 @@
 
     return {
       mood: mood || Tamagotchi.getAutoMood(),
-      hunger: tama.hunger,
+      fullness: tama.fullness,
+      cleanliness: tama.cleanliness,
       happiness: tama.happiness,
-      energy: tama.energy,
       level: tama.level,
       timerRunning: timer.isRunning,
       timerBreak: timer.isBreak,
@@ -198,12 +225,11 @@
     const sharedData = Share.init(collectState);
 
     if (sharedData) {
-      // 공유 링크로 들어온 경우: 읽기 전용 표시
       showSharedView(sharedData);
       return;
     }
 
-    // 다마고치 초기화
+    // 다마고치 초기화 (서버 API 폴링 시작)
     Tamagotchi.init((stats) => {
       updateStatusBars(stats);
     });
@@ -220,17 +246,18 @@
         }
       },
       onComplete: ({ isBreak, pomoCount }) => {
+        Notification_.notifyTimerComplete(isBreak, pomoCount);
+
         if (isBreak) {
-          updateOtter('happy', `집중 끝! ${pomoCount}번째 뽀모도로 완료! 🎉`);
+          updateOtter('happy', `첨벙! 집중 끝! ${pomoCount}번째 뽀모도로 완료! 🎉`);
         } else {
-          updateOtter('excited', '휴식 끝! 다시 집중하자! 💪');
+          updateOtter('excited', '첨벙! 휴식 끝! 다시 집중하자! 💪');
         }
       },
     });
 
     // 기분 모듈 초기화
     Mood.init((mood) => {
-      // 기분 상태에 맞는 혜달이 표정 매핑
       const otterStateMap = {
         happy: 'happy',
         focused: 'focused',
@@ -260,6 +287,18 @@
 
     // 돌보기 액션 바인딩
     initCareActions();
+
+    // 알림 권한 요청
+    Notification_.requestPermission();
+    document.addEventListener('click', function unlockAudio() {
+      Notification_.playSplash && void 0;
+      document.removeEventListener('click', unlockAudio);
+    }, { once: true });
+
+    // 페이지 이탈 시 정리
+    window.addEventListener('beforeunload', () => {
+      Tamagotchi.destroy();
+    });
 
     // 초기 혜달이 렌더링
     updateOtter('default', '안녕! 나는 혜달이야 🦦');
