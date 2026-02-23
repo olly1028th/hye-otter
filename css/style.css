@@ -46,6 +46,23 @@ body {
   padding: 0 16px 32px;
 }
 
+/* ===== API 상태 배너 ===== */
+.api-banner {
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+  animation: popIn 0.3s ease;
+}
+
+.api-banner--offline {
+  background: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFE0B2;
+}
+
 /* ===== 헤더 ===== */
 .header {
   display: flex;

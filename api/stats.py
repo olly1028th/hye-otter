@@ -2,6 +2,9 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
 from _db import get_stats_dict
 
 ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN', '*')
