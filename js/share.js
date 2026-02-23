@@ -51,6 +51,8 @@ const Share = (() => {
     return base + '?' + encoded;
   }
 
+  const MAX_URL_LENGTH = 2000;
+
   /** 공유 모달 열기 */
   function openModal(stateData) {
     const $modal = document.getElementById('share-modal');
@@ -59,7 +61,18 @@ const Share = (() => {
 
     if (!$modal) return;
 
-    const url = generateUrl(stateData);
+    let url = generateUrl(stateData);
+
+    // URL이 너무 길면 할일 목록을 줄여서 재시도
+    if (url.length > MAX_URL_LENGTH && stateData.todos && stateData.todos.length > 0) {
+      const trimmed = { ...stateData, todos: stateData.todos.slice(0, 3) };
+      url = generateUrl(trimmed);
+    }
+    if (url.length > MAX_URL_LENGTH) {
+      const noTodos = { ...stateData, todos: [] };
+      url = generateUrl(noTodos);
+    }
+
     if ($url) $url.value = url;
 
     // 미리보기 렌더링

@@ -220,10 +220,13 @@
         }
       },
       onComplete: ({ isBreak, pomoCount }) => {
+        // 첨벙! 물소리 + 브라우저 알림
+        Notification_.notifyTimerComplete(isBreak, pomoCount);
+
         if (isBreak) {
-          updateOtter('happy', `집중 끝! ${pomoCount}번째 뽀모도로 완료! 🎉`);
+          updateOtter('happy', `첨벙! 집중 끝! ${pomoCount}번째 뽀모도로 완료! 🎉`);
         } else {
-          updateOtter('excited', '휴식 끝! 다시 집중하자! 💪');
+          updateOtter('excited', '첨벙! 휴식 끝! 다시 집중하자! 💪');
         }
       },
     });
@@ -260,6 +263,18 @@
 
     // 돌보기 액션 바인딩
     initCareActions();
+
+    // 알림 권한 요청 (사용자 첫 인터랙션 시 AudioContext 활성화)
+    Notification_.requestPermission();
+    document.addEventListener('click', function unlockAudio() {
+      Notification_.playSplash && void 0; // AudioContext 준비용
+      document.removeEventListener('click', unlockAudio);
+    }, { once: true });
+
+    // 페이지 이탈 시 interval 정리 (메모리 누수 방지)
+    window.addEventListener('beforeunload', () => {
+      Tamagotchi.destroy();
+    });
 
     // 초기 혜달이 렌더링
     updateOtter('default', '안녕! 나는 혜달이야 🦦');

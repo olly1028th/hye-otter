@@ -4,11 +4,13 @@
  */
 const Tamagotchi = (() => {
   const STORAGE_KEY = 'hyeotter_tamagotchi';
+  const SCHEMA_VERSION = 1;
   const DECAY_INTERVAL = 60_000; // 1분마다 상태 감소
   const COOLDOWN = 3_000; // 액션 쿨다운 3초
 
   // 초기 상태
   const defaultState = {
+    _v: SCHEMA_VERSION,
     hunger: 50,
     happiness: 50,
     energy: 50,
@@ -25,11 +27,25 @@ const Tamagotchi = (() => {
   let decayTimer = null;
   let onChange = null;
 
+  /** 스키마 마이그레이션 (버전별 업그레이드) */
+  function migrate(data) {
+    const v = data._v || 0;
+    // v0 → v1: 버전 필드 추가 (기존 데이터 호환)
+    if (v < 1) {
+      data._v = 1;
+    }
+    // 향후 마이그레이션은 여기에 추가
+    // if (v < 2) { ... data._v = 2; }
+    return data;
+  }
+
   function load() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        state = { ...defaultState, ...JSON.parse(saved) };
+        let data = JSON.parse(saved);
+        data = migrate(data);
+        state = { ...defaultState, ...data };
         applyTimeDecay();
       }
     } catch (e) {
