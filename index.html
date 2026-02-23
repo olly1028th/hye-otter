@@ -51,7 +51,6 @@
     <nav class="tabs">
       <button class="tab tab--active" data-tab="timer">타이머</button>
       <button class="tab" data-tab="mood">기분</button>
-      <button class="tab" data-tab="care">돌보기</button>
       <button class="tab" data-tab="todo">할 일</button>
     </nav>
 
@@ -128,34 +127,6 @@
         </div>
       </section>
 
-      <!-- 돌보기 탭 -->
-      <section id="tab-care" class="tab-panel">
-        <div class="care">
-          <p class="care__title">혜달이를 돌봐주세요!</p>
-          <div class="care__actions care__actions--three">
-            <button id="care-feed" class="care__btn">
-              <span class="care__icon">🐟</span>
-              <span class="care__label">밥 주기</span>
-            </button>
-            <button id="care-wash" class="care__btn">
-              <span class="care__icon">🫧</span>
-              <span class="care__label">씻기기</span>
-            </button>
-            <button id="care-pet" class="care__btn">
-              <span class="care__icon">💕</span>
-              <span class="care__label">쓰다듬기</span>
-            </button>
-          </div>
-          <div class="care__level">
-            <p>혜달이 레벨: <strong id="otter-level">1</strong></p>
-            <div class="stat__bar">
-              <div id="exp-bar" class="stat__fill stat__fill--exp" style="width:0%"></div>
-            </div>
-            <p class="care__exp-text">경험치: <span id="exp-text">0</span> / <span id="exp-max">100</span></p>
-          </div>
-        </div>
-      </section>
-
       <!-- 할 일 탭 -->
       <section id="tab-todo" class="tab-panel">
         <div class="todo">
@@ -168,6 +139,34 @@
         </div>
       </section>
     </main>
+
+    <!-- 레벨 표시 -->
+    <div class="care__level">
+      <p>Lv.<strong id="otter-level">1</strong></p>
+      <div class="stat__bar">
+        <div id="exp-bar" class="stat__fill stat__fill--exp" style="width:0%"></div>
+      </div>
+      <p class="care__exp-text"><span id="exp-text">0</span> / <span id="exp-max">100</span></p>
+    </div>
+
+    <!-- 하단 돌보기 버튼 (항상 표시) -->
+    <section class="bottom-bar">
+      <button id="care-feed" class="bottom-btn bottom-btn--feed">
+        <span class="bottom-btn__icon">🐚</span>
+        <span class="bottom-btn__label">조개 주기</span>
+      </button>
+      <button id="care-wash" class="bottom-btn bottom-btn--wash">
+        <span class="bottom-btn__icon">🧼</span>
+        <span class="bottom-btn__label">비누칠하기</span>
+      </button>
+      <button id="care-pet" class="bottom-btn bottom-btn--pet">
+        <span class="bottom-btn__icon">💕</span>
+        <span class="bottom-btn__label">쓰다듬기</span>
+      </button>
+    </section>
+
+    <!-- 파티클 컨테이너 -->
+    <div id="particles" class="particles"></div>
 
     <!-- 공유 모달 -->
     <div id="share-modal" class="modal" hidden>

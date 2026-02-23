@@ -81,6 +81,39 @@
     });
   }
 
+  // === 파티클 애니메이션 ===
+  const particleEmojis = {
+    'care-feed': ['🐚', '✨', '⭐'],
+    'care-wash': ['🧼', '🫧', '💧'],
+    'care-pet': ['❤️', '💕', '💖'],
+  };
+
+  function spawnParticles(btn, type) {
+    const container = document.getElementById('particles');
+    if (!container) return;
+
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top;
+    const emojis = particleEmojis[type] || ['✨'];
+
+    for (let i = 0; i < 8; i++) {
+      const el = document.createElement('span');
+      el.className = 'particle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+      const offsetX = (Math.random() - 0.5) * 80;
+      const delay = Math.random() * 0.2;
+      el.style.left = (cx + offsetX) + 'px';
+      el.style.top = cy + 'px';
+      el.style.animationDelay = delay + 's';
+      el.style.fontSize = (1 + Math.random() * 0.8) + 'rem';
+
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }
+  }
+
   // === 돌보기 액션 바인딩 ===
   function initCareActions() {
     const actions = {
@@ -96,6 +129,9 @@
       btn.addEventListener('click', async () => {
         const result = await action();
         if (result.ok) {
+          // 파티클 애니메이션 발사
+          spawnParticles(btn, id);
+
           updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 
           // 쿨다운 표시

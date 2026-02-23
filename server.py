@@ -98,19 +98,19 @@ def handle_action(action):
     if action == 'feed':
         fullness = min(100, fullness + 25)
         happiness = min(100, happiness + 5)
-        msg = '냠냠! 맛있다~ 🐟'
+        msg = '조개다! 냠냠 맛있어~ 🐚'
         otter_state = 'eating'
         exp += 10
     elif action == 'wash':
         cleanliness = min(100, cleanliness + 25)
         happiness = min(100, happiness + 5)
-        msg = '퐁퐁! 깨끗해졌다~ 🫧'
+        msg = '뽀득뽀득! 깨끗해졌다~ 🧼'
         otter_state = 'playing'
         exp += 10
     elif action == 'pet':
         happiness = min(100, happiness + 20)
         cleanliness = min(100, cleanliness + 5)
-        msg = '좋아좋아~ 💕'
+        msg = '좋아좋아~ 더 해줘! 💕'
         otter_state = 'happy'
         exp += 5
     else:
