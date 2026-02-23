@@ -1,0 +1,2 @@
+# Python 표준 라이브러리만 사용 (http.server, sqlite3, json)
+# 추가 패키지 없음

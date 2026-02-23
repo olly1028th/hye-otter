@@ -182,7 +182,7 @@ class OtterHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     init_db()
-    port = 8080
+    port = int(os.environ.get('PORT', 8080))
     with http.server.HTTPServer(('', port), OtterHandler) as srv:
         print(f'🦦 혜달이 서버 시작! http://localhost:{port}')
         srv.serve_forever()
