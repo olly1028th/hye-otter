@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyeotter-v2';
+const CACHE_NAME = 'hyeotter-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -40,15 +40,18 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // Stale-while-revalidate: 캐시된 버전을 즉시 반환하되, 백그라운드에서 새 버전을 가져옴
   e.respondWith(
-    caches.match(e.request).then((cached) => {
-      return cached || fetch(e.request).then((response) => {
-        if (response.ok && e.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
-        }
-        return response;
-      });
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(e.request).then((cached) => {
+        const fetched = fetch(e.request).then((response) => {
+          if (response.ok && e.request.method === 'GET') {
+            cache.put(e.request, response.clone());
+          }
+          return response;
+        });
+        return cached || fetched;
+      })
+    )
   );
 });
