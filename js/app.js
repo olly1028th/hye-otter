@@ -44,13 +44,13 @@
   // === 상태바 업데이트 ===
   function updateStatusBars(stats) {
     const bars = {
-      hunger: document.getElementById('hunger-bar'),
+      fullness: document.getElementById('fullness-bar'),
+      cleanliness: document.getElementById('cleanliness-bar'),
       happiness: document.getElementById('happiness-bar'),
-      energy: document.getElementById('energy-bar'),
     };
-    if (bars.hunger) bars.hunger.style.width = stats.hunger + '%';
+    if (bars.fullness) bars.fullness.style.width = stats.fullness + '%';
+    if (bars.cleanliness) bars.cleanliness.style.width = stats.cleanliness + '%';
     if (bars.happiness) bars.happiness.style.width = stats.happiness + '%';
-    if (bars.energy) bars.energy.style.width = stats.energy + '%';
 
     // 레벨 & 경험치
     const $level = document.getElementById('otter-level');
@@ -85,8 +85,7 @@
   function initCareActions() {
     const actions = {
       'care-feed': () => Tamagotchi.feed(),
-      'care-play': () => Tamagotchi.play(),
-      'care-sleep': () => Tamagotchi.sleep(),
+      'care-wash': () => Tamagotchi.wash(),
       'care-pet': () => Tamagotchi.pet(),
     };
 
@@ -94,17 +93,10 @@
       const btn = document.getElementById(id);
       if (!btn) return;
 
-      btn.addEventListener('click', () => {
-        const result = action();
+      btn.addEventListener('click', async () => {
+        const result = await action();
         if (result.ok) {
-          // 액션 성공
-          const actionStates = {
-            'care-feed': 'eating',
-            'care-play': 'playing',
-            'care-sleep': 'sleeping',
-            'care-pet': 'happy',
-          };
-          updateOtter(result.leveled ? 'levelup' : (actionStates[id] || 'happy'), result.msg);
+          updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 
           // 쿨다운 표시
           btn.classList.add('care--cooldown');
@@ -124,7 +116,6 @@
 
   // === 공유 데이터로 읽기 전용 표시 ===
   function showSharedView(data) {
-    // 공유된 상태를 보여줍니다
     if (data.mood) {
       updateOtter(data.mood);
     }
@@ -141,11 +132,11 @@
     }
 
     // 상태바 업데이트
-    if (data.hunger != null) {
+    if (data.fullness != null) {
       updateStatusBars({
-        hunger: data.hunger,
+        fullness: data.fullness,
+        cleanliness: data.cleanliness || 50,
         happiness: data.happiness || 50,
-        energy: data.energy || 50,
         level: data.level || 1,
         exp: 0,
         expNeeded: 100,
@@ -178,9 +169,9 @@
 
     return {
       mood: mood || Tamagotchi.getAutoMood(),
-      hunger: tama.hunger,
+      fullness: tama.fullness,
+      cleanliness: tama.cleanliness,
       happiness: tama.happiness,
-      energy: tama.energy,
       level: tama.level,
       timerRunning: timer.isRunning,
       timerBreak: timer.isBreak,
@@ -198,12 +189,11 @@
     const sharedData = Share.init(collectState);
 
     if (sharedData) {
-      // 공유 링크로 들어온 경우: 읽기 전용 표시
       showSharedView(sharedData);
       return;
     }
 
-    // 다마고치 초기화
+    // 다마고치 초기화 (서버 API 폴링 시작)
     Tamagotchi.init((stats) => {
       updateStatusBars(stats);
     });
@@ -220,7 +210,6 @@
         }
       },
       onComplete: ({ isBreak, pomoCount }) => {
-        // 첨벙! 물소리 + 브라우저 알림
         Notification_.notifyTimerComplete(isBreak, pomoCount);
 
         if (isBreak) {
@@ -233,7 +222,6 @@
 
     // 기분 모듈 초기화
     Mood.init((mood) => {
-      // 기분 상태에 맞는 혜달이 표정 매핑
       const otterStateMap = {
         happy: 'happy',
         focused: 'focused',
@@ -264,14 +252,14 @@
     // 돌보기 액션 바인딩
     initCareActions();
 
-    // 알림 권한 요청 (사용자 첫 인터랙션 시 AudioContext 활성화)
+    // 알림 권한 요청
     Notification_.requestPermission();
     document.addEventListener('click', function unlockAudio() {
-      Notification_.playSplash && void 0; // AudioContext 준비용
+      Notification_.playSplash && void 0;
       document.removeEventListener('click', unlockAudio);
     }, { once: true });
 
-    // 페이지 이탈 시 interval 정리 (메모리 누수 방지)
+    // 페이지 이탈 시 정리
     window.addEventListener('beforeunload', () => {
       Tamagotchi.destroy();
     });

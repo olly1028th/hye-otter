@@ -9,9 +9,9 @@ const Share = (() => {
   function encodeState(data) {
     const params = new URLSearchParams();
     if (data.mood) params.set('m', data.mood);
-    if (data.hunger != null) params.set('h', data.hunger);
+    if (data.fullness != null) params.set('f', data.fullness);
+    if (data.cleanliness != null) params.set('c', data.cleanliness);
     if (data.happiness != null) params.set('hp', data.happiness);
-    if (data.energy != null) params.set('e', data.energy);
     if (data.level != null) params.set('lv', data.level);
     if (data.timerRunning) params.set('tr', '1');
     if (data.timerBreak) params.set('tb', '1');
@@ -26,13 +26,13 @@ const Share = (() => {
   /** URL 파라미터에서 상태 디코딩 */
   function decodeState(search) {
     const params = new URLSearchParams(search);
-    if (!params.has('m') && !params.has('h')) return null;
+    if (!params.has('m') && !params.has('f')) return null;
 
     const data = {};
     if (params.has('m')) data.mood = params.get('m');
-    if (params.has('h')) data.hunger = Number(params.get('h'));
+    if (params.has('f')) data.fullness = Number(params.get('f'));
+    if (params.has('c')) data.cleanliness = Number(params.get('c'));
     if (params.has('hp')) data.happiness = Number(params.get('hp'));
-    if (params.has('e')) data.energy = Number(params.get('e'));
     if (params.has('lv')) data.level = Number(params.get('lv'));
     if (params.has('tr')) data.timerRunning = true;
     if (params.has('tb')) data.timerBreak = true;

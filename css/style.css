@@ -15,9 +15,9 @@
   --text: #3A2E22;
   --text-light: #8C7B6B;
   --border: #E8DDD0;
-  --hunger: #FF7B7B;
+  --fullness: #FF9F68;
+  --cleanliness: #64B5F6;
   --happiness: #FFD93D;
-  --energy: #6BCB77;
   --exp: #A78BFA;
   --radius: 16px;
   --shadow: 0 2px 12px rgba(0,0,0,0.08);
@@ -203,9 +203,9 @@ body {
   transition: width 0.5s ease;
 }
 
-.stat__fill--hunger { background: linear-gradient(90deg, #FF9A9A, var(--hunger)); }
+.stat__fill--fullness { background: linear-gradient(90deg, #FFD4B8, var(--fullness)); }
+.stat__fill--cleanliness { background: linear-gradient(90deg, #B3D9F7, var(--cleanliness)); }
 .stat__fill--happiness { background: linear-gradient(90deg, #FFE580, var(--happiness)); }
-.stat__fill--energy { background: linear-gradient(90deg, #A0E8AF, var(--energy)); }
 .stat__fill--exp { background: linear-gradient(90deg, #C4B5FD, var(--exp)); }
 
 /* ===== 탭 네비게이션 ===== */
@@ -439,6 +439,10 @@ body {
   margin-bottom: 20px;
 }
 
+.care__actions--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .care__btn {
   display: flex;
   flex-direction: column;
@@ -589,7 +593,7 @@ body {
 }
 
 .todo__delete:hover {
-  color: var(--hunger);
+  color: var(--fullness);
   background: #FFF0F0;
 }
 

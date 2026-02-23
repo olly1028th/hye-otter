@@ -34,16 +34,16 @@
     <!-- 다마고치 상태바 -->
     <section class="stats-bar">
       <div class="stat">
-        <span class="stat__label">배고픔</span>
-        <div class="stat__bar"><div id="hunger-bar" class="stat__fill stat__fill--hunger" style="width:50%"></div></div>
+        <span class="stat__label">포만감</span>
+        <div class="stat__bar"><div id="fullness-bar" class="stat__fill stat__fill--fullness" style="width:50%"></div></div>
+      </div>
+      <div class="stat">
+        <span class="stat__label">청결도</span>
+        <div class="stat__bar"><div id="cleanliness-bar" class="stat__fill stat__fill--cleanliness" style="width:50%"></div></div>
       </div>
       <div class="stat">
         <span class="stat__label">행복도</span>
         <div class="stat__bar"><div id="happiness-bar" class="stat__fill stat__fill--happiness" style="width:50%"></div></div>
-      </div>
-      <div class="stat">
-        <span class="stat__label">에너지</span>
-        <div class="stat__bar"><div id="energy-bar" class="stat__fill stat__fill--energy" style="width:50%"></div></div>
       </div>
     </section>
 
@@ -132,18 +132,14 @@
       <section id="tab-care" class="tab-panel">
         <div class="care">
           <p class="care__title">혜달이를 돌봐주세요!</p>
-          <div class="care__actions">
+          <div class="care__actions care__actions--three">
             <button id="care-feed" class="care__btn">
               <span class="care__icon">🐟</span>
               <span class="care__label">밥 주기</span>
             </button>
-            <button id="care-play" class="care__btn">
-              <span class="care__icon">⚽</span>
-              <span class="care__label">놀아주기</span>
-            </button>
-            <button id="care-sleep" class="care__btn">
-              <span class="care__icon">💤</span>
-              <span class="care__label">재우기</span>
+            <button id="care-wash" class="care__btn">
+              <span class="care__icon">🫧</span>
+              <span class="care__label">씻기기</span>
             </button>
             <button id="care-pet" class="care__btn">
               <span class="care__icon">💕</span>
@@ -195,6 +191,7 @@
     }
   </script>
   <script src="js/otter-svg.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/tamagotchi.js"></script>
   <script src="js/timer.js"></script>
   <script src="js/mood.js"></script>

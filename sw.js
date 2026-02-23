@@ -1,9 +1,10 @@
-const CACHE_NAME = 'hyeotter-v1';
+const CACHE_NAME = 'hyeotter-v2';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
   './js/otter-svg.js',
+  './js/api.js',
   './js/tamagotchi.js',
   './js/timer.js',
   './js/mood.js',
@@ -33,11 +34,15 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  // API 요청은 캐시하지 않음 (실시간 공유 데이터)
+  if (e.request.url.includes('/api/')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then((cached) => {
-      // 캐시 우선, 네트워크 폴백
       return cached || fetch(e.request).then((response) => {
-        // 성공 시 캐시에 저장
         if (response.ok && e.request.method === 'GET') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
