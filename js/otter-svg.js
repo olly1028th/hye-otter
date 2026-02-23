@@ -1,6 +1,7 @@
 /**
  * 혜달이 SVG 캐릭터 모듈
  * 상태에 따라 다른 표정과 포즈를 보여줍니다.
+ * 스탯 수치에 따라 시각적 오버레이가 추가됩니다.
  */
 const OtterSVG = (() => {
   // 기본 몸체 (공통)
@@ -237,16 +238,138 @@ const OtterSVG = (() => {
       values="0,0; 0,-5; 0,0" dur="3s" repeatCount="indefinite"/>
   `;
 
+  // ===== 스탯 기반 비주얼 오버레이 생성 =====
+  function buildStatOverlays(stats) {
+    if (!stats) return '';
+    let svg = '';
+    const { fullness = 50, cleanliness = 50, happiness = 50 } = stats;
+
+    // --- 배고픔 오버레이 (포만감 낮을 때) ---
+    if (fullness < 30) {
+      const intensity = fullness < 15 ? 0.8 : 0.4;
+      // 배 꼬르륵 물결선
+      svg += `
+        <g opacity="${intensity}">
+          <path d="M135 215 Q140 210 145 215 Q150 220 155 215" stroke="#D4A04A" stroke-width="1.5" fill="none" stroke-linecap="round">
+            <animate attributeName="d" values="M135 215 Q140 210 145 215 Q150 220 155 215;M135 218 Q140 213 145 218 Q150 223 155 218;M135 215 Q140 210 145 215 Q150 220 155 215" dur="1.5s" repeatCount="indefinite"/>
+          </path>
+          <path d="M140 225 Q145 220 150 225 Q155 230 160 225" stroke="#D4A04A" stroke-width="1.2" fill="none" stroke-linecap="round">
+            <animate attributeName="d" values="M140 225 Q145 220 150 225 Q155 230 160 225;M140 228 Q145 223 150 228 Q155 233 160 228;M140 225 Q145 220 150 225 Q155 230 160 225" dur="1.8s" repeatCount="indefinite"/>
+          </path>
+        </g>
+      `;
+      // 위급하면 배고픔 이모지
+      if (fullness < 15) {
+        svg += `<text x="75" y="210" font-size="16" opacity="0.7">🐚</text>
+                <text x="68" y="215" font-size="10" opacity="0.5">?</text>`;
+      }
+    }
+
+    // --- 더러움 오버레이 (청결도 낮을 때) ---
+    if (cleanliness < 30) {
+      const intensity = cleanliness < 15 ? 0.7 : 0.35;
+      // 먼지/얼룩 점
+      svg += `
+        <g opacity="${intensity}">
+          <circle cx="115" cy="190" r="3" fill="#8B7355"/>
+          <circle cx="125" cy="205" r="2.5" fill="#8B7355"/>
+          <circle cx="178" cy="195" r="2.8" fill="#8B7355"/>
+          <circle cx="170" cy="215" r="2" fill="#8B7355"/>
+        </g>
+      `;
+      // 위급하면 땀방울 + 파리
+      if (cleanliness < 15) {
+        svg += `
+          <path d="M195 88 Q192 98 195 105" stroke="#5BC0EB" stroke-width="2" fill="none" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite"/>
+          </path>
+          <text x="210" y="175" font-size="10" opacity="0.5">💦</text>
+        `;
+      }
+    }
+
+    // --- 슬픔 오버레이 (행복도 낮을 때) ---
+    if (happiness < 30) {
+      const intensity = happiness < 15 ? 0.6 : 0.3;
+      // 어두운 구름
+      svg += `
+        <g opacity="${intensity}">
+          <ellipse cx="150" cy="30" rx="40" ry="15" fill="#94A3B8"/>
+          <ellipse cx="135" cy="28" rx="25" ry="12" fill="#94A3B8"/>
+          <ellipse cx="168" cy="26" rx="28" ry="13" fill="#94A3B8"/>
+        </g>
+      `;
+      // 위급하면 빗방울
+      if (happiness < 15) {
+        svg += `
+          <line x1="140" y1="42" x2="138" y2="55" stroke="#5BC0EB" stroke-width="1.5" opacity="0.4">
+            <animate attributeName="y2" values="55;65;55" dur="1s" repeatCount="indefinite"/>
+          </line>
+          <line x1="155" y1="44" x2="153" y2="58" stroke="#5BC0EB" stroke-width="1.5" opacity="0.3">
+            <animate attributeName="y2" values="58;68;58" dur="1.2s" repeatCount="indefinite"/>
+          </line>
+          <line x1="165" y1="40" x2="163" y2="52" stroke="#5BC0EB" stroke-width="1.5" opacity="0.35">
+            <animate attributeName="y2" values="52;62;52" dur="0.9s" repeatCount="indefinite"/>
+          </line>
+        `;
+      }
+    }
+
+    // --- 행복 오버레이 (행복도 높을 때) ---
+    if (happiness > 85) {
+      // 반짝이는 스파클 파티클
+      svg += `
+        <g class="sparkle-overlay">
+          <text x="85" y="55" font-size="10" opacity="0.6">✨</text>
+          <text x="205" y="60" font-size="8" opacity="0.4">✨</text>
+          <text x="70" y="175" font-size="9" opacity="0.5">⭐</text>
+          <text x="225" y="165" font-size="8" opacity="0.4">⭐</text>
+        </g>
+      `;
+    }
+
+    // --- 최고 상태 오버레이 (전체 높음) ---
+    if (fullness > 80 && cleanliness > 80 && happiness > 80) {
+      // 황금 오라 글로우
+      svg += `
+        <circle cx="150" cy="150" r="95" fill="none" stroke="#FFD700" stroke-width="3" opacity="0.15">
+          <animate attributeName="r" values="95;100;95" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.15;0.08;0.15" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="150" cy="150" r="105" fill="none" stroke="#FFD700" stroke-width="1.5" opacity="0.08">
+          <animate attributeName="r" values="105;112;105" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.08;0.04;0.08" dur="3s" repeatCount="indefinite"/>
+        </circle>
+      `;
+    }
+
+    // --- 위급 상태 오버레이 (전체 낮음) ---
+    if (fullness < 20 && cleanliness < 20 && happiness < 20) {
+      // 빨간 경고 펄스
+      svg += `
+        <circle cx="150" cy="150" r="100" fill="none" stroke="#EF4444" stroke-width="2" opacity="0">
+          <animate attributeName="opacity" values="0;0.3;0" dur="1.5s" repeatCount="indefinite"/>
+          <animate attributeName="r" values="100;110;100" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+      `;
+    }
+
+    return svg;
+  }
+
   /**
    * 상태에 맞는 SVG 생성
    * @param {string} state - 캐릭터 상태
+   * @param {object} [stats] - 스탯 객체 { fullness, cleanliness, happiness }
    * @returns {string} SVG 문자열
    */
-  function render(state = 'default') {
+  function render(state = 'default', stats = null) {
     const face = faces[state] || faces.default;
+    const overlays = buildStatOverlays(stats);
     return `
       <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" class="otter-svg">
         ${waterAnimation}
+        ${overlays}
         <g class="otter-body">
           ${floatAnimation}
           ${body}
@@ -261,11 +384,22 @@ const OtterSVG = (() => {
    * 컨테이너에 혜달이를 렌더링
    * @param {string} containerId - 컨테이너 DOM id
    * @param {string} state - 캐릭터 상태
+   * @param {object} [stats] - 스탯 객체 (선택)
    */
-  function mount(containerId, state) {
+  function mount(containerId, state, stats) {
     const el = document.getElementById(containerId);
-    if (el) {
-      el.innerHTML = render(state);
+    if (!el) return;
+
+    el.innerHTML = render(state, stats);
+
+    // 스탯 기반 웰니스 레벨을 data attribute로 설정 (CSS 효과용)
+    if (stats) {
+      const wellness = (stats.fullness || 0) * 0.3 + (stats.cleanliness || 0) * 0.25 + (stats.happiness || 0) * 0.45;
+      if (wellness > 85) el.dataset.wellness = 'max';
+      else if (wellness > 60) el.dataset.wellness = 'high';
+      else if (wellness > 35) el.dataset.wellness = 'medium';
+      else if (wellness > 15) el.dataset.wellness = 'low';
+      else el.dataset.wellness = 'critical';
     }
   }
 
