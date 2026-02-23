@@ -48,17 +48,27 @@
       cleanliness: document.getElementById('cleanliness-bar'),
       happiness: document.getElementById('happiness-bar'),
     };
+    const values = {
+      fullness: document.getElementById('fullness-value'),
+      cleanliness: document.getElementById('cleanliness-value'),
+      happiness: document.getElementById('happiness-value'),
+    };
     if (bars.fullness) bars.fullness.style.width = stats.fullness + '%';
     if (bars.cleanliness) bars.cleanliness.style.width = stats.cleanliness + '%';
     if (bars.happiness) bars.happiness.style.width = stats.happiness + '%';
+    if (values.fullness) values.fullness.textContent = Math.round(stats.fullness) + '%';
+    if (values.cleanliness) values.cleanliness.textContent = Math.round(stats.cleanliness) + '%';
+    if (values.happiness) values.happiness.textContent = Math.round(stats.happiness) + '%';
 
     // 레벨 & 경험치
     const $level = document.getElementById('otter-level');
+    const $levelTop = document.getElementById('otter-level-top');
     const $expBar = document.getElementById('exp-bar');
     const $expText = document.getElementById('exp-text');
     const $expMax = document.getElementById('exp-max');
 
     if ($level) $level.textContent = stats.level;
+    if ($levelTop) $levelTop.textContent = stats.level;
     if ($expBar) $expBar.style.width = (stats.exp / stats.expNeeded * 100) + '%';
     if ($expText) $expText.textContent = stats.exp;
     if ($expMax) $expMax.textContent = stats.expNeeded;
@@ -79,6 +89,24 @@
         if (panel) panel.classList.add('tab-panel--active');
       });
     });
+  }
+
+  // === 하트 플로팅 (쓰다듬기 Stitch-style) ===
+  function spawnHearts() {
+    const container = document.getElementById('otter-hearts');
+    if (!container) return;
+
+    const hearts = ['❤️', '💕', '💖', '💗'];
+    for (let i = 0; i < 5; i++) {
+      const el = document.createElement('span');
+      el.className = 'otter-heart';
+      el.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      el.style.left = (Math.random() * 60 - 30) + 'px';
+      el.style.animationDelay = (Math.random() * 0.3) + 's';
+      el.style.fontSize = (1.2 + Math.random() * 0.8) + 'rem';
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1300);
+    }
   }
 
   // === 파티클 애니메이션 ===
@@ -131,6 +159,8 @@
         if (result.ok) {
           // 파티클 애니메이션 발사
           spawnParticles(btn, id);
+          // 쓰다듬기면 하트 플로팅도 추가
+          if (id === 'care-pet') spawnHearts();
 
           updateOtter(result.leveled ? 'levelup' : (result.state || 'happy'), result.msg);
 

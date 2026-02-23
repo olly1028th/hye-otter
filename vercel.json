@@ -1,13 +1,15 @@
 {
-  "buildCommand": "",
-  "outputDirectory": "",
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "@vercel/python@4.5.0"
-    }
-  },
   "rewrites": [
     { "source": "/api/stats", "destination": "/api/stats" },
+    { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/action/:action", "destination": "/api/action/[action]" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store" }
+      ]
+    }
   ]
 }

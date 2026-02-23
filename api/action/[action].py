@@ -2,7 +2,11 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import sys
 from urllib.parse import urlparse
+
+# api/ 디렉토리를 Python 경로에 추가 (상위 모듈 임포트용)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from _db import handle_action
 
 ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN', '*')

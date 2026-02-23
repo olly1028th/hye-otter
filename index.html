@@ -25,24 +25,38 @@
       <div id="otter-container" class="otter-container">
         <!-- SVG가 JS로 삽입됩니다 -->
       </div>
+      <div id="otter-hearts" class="otter-hearts"></div>
       <div id="otter-speech" class="otter-speech" hidden>
         <p id="otter-speech-text"></p>
       </div>
       <p id="otter-status-text" class="otter-status-text">혜달이가 기다리고 있어요!</p>
     </section>
 
-    <!-- 다마고치 상태바 -->
+    <!-- 다마고치 상태바 (Stitch-inspired) -->
     <section class="stats-bar">
+      <div class="stats-bar__header">
+        <span class="stats-bar__title">혜달이의 기분</span>
+        <span class="stats-bar__level">Lv.<strong id="otter-level-top"></strong></span>
+      </div>
       <div class="stat">
-        <span class="stat__label">포만감</span>
+        <div class="stat__row">
+          <span class="stat__label">포만감</span>
+          <span class="stat__value" id="fullness-value">50%</span>
+        </div>
         <div class="stat__bar"><div id="fullness-bar" class="stat__fill stat__fill--fullness" style="width:50%"></div></div>
       </div>
       <div class="stat">
-        <span class="stat__label">청결도</span>
+        <div class="stat__row">
+          <span class="stat__label">청결도</span>
+          <span class="stat__value" id="cleanliness-value">50%</span>
+        </div>
         <div class="stat__bar"><div id="cleanliness-bar" class="stat__fill stat__fill--cleanliness" style="width:50%"></div></div>
       </div>
       <div class="stat">
-        <span class="stat__label">행복도</span>
+        <div class="stat__row">
+          <span class="stat__label">행복도</span>
+          <span class="stat__value" id="happiness-value">50%</span>
+        </div>
         <div class="stat__bar"><div id="happiness-bar" class="stat__fill stat__fill--happiness" style="width:50%"></div></div>
       </div>
     </section>
