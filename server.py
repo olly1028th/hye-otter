@@ -9,9 +9,25 @@ import sqlite3
 import time
 import os
 import urllib.parse
+from collections import defaultdict
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hyeotter.db')
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# --- 레이트 리밋: IP별 요청 기록 ---
+_rate_log = defaultdict(list)
+ACTION_COOLDOWN = 2  # 액션 최소 간격 (초)
+VALID_ACTIONS = {'feed', 'wash', 'pet'}  # 허용된 액션 목록
+
+
+def check_rate_limit(ip, max_per_min=60):
+    """IP당 분당 최대 요청 수 제한. 초과 시 False 반환."""
+    now = time.time()
+    _rate_log[ip] = [t for t in _rate_log[ip] if now - t < 60]
+    if len(_rate_log[ip]) >= max_per_min:
+        return False
+    _rate_log[ip].append(now)
+    return True
 
 # 분당 감소율
 DECAY_PER_MIN = {
@@ -85,6 +101,10 @@ def get_stats_dict(conn):
 
 
 def handle_action(action):
+    # 입력 검증: 허용된 액션만 통과
+    if action not in VALID_ACTIONS:
+        return {'ok': False, 'msg': '알 수 없는 행동이에요'}
+
     conn = get_db()
     apply_decay(conn)
     row = conn.execute('SELECT * FROM otter_stats WHERE id = 1').fetchone()
@@ -155,21 +175,54 @@ class OtterHandler(http.server.SimpleHTTPRequestHandler):
             stats = get_stats_dict(conn)
             conn.close()
             self._json(stats)
+        elif parsed.path == '/api/health':
+            self._health_check()
         else:
             super().do_GET()
+
+    def _health_check(self):
+        """서버 + DB 상태 확인"""
+        try:
+            conn = get_db()
+            conn.execute('SELECT 1').fetchone()
+            conn.close()
+            self._json({'status': 'ok', 'db': 'connected', 'time': time.time()})
+        except Exception as e:
+            self._json({'status': 'error', 'db': 'disconnected', 'error': str(e)}, 500)
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path.startswith('/api/action/'):
+            # 레이트 리밋 체크
+            client_ip = self.client_address[0]
+            if not check_rate_limit(client_ip):
+                self._json({'ok': False, 'msg': '너무 빨라요! 잠시 후 다시 시도해주세요 🦦'}, 429)
+                return
             action = parsed.path.rsplit('/', 1)[-1]
             result = handle_action(action)
             self._json(result)
         else:
             self.send_error(404)
 
-    def _json(self, data):
+    def do_OPTIONS(self):
+        """CORS preflight 요청 처리"""
+        self.send_response(204)
+        self._cors_headers()
+        self.end_headers()
+
+    def _cors_headers(self):
+        """CORS 헤더 추가"""
+        origin = self.headers.get('Origin', '')
+        allowed = os.environ.get('ALLOWED_ORIGIN', '*')
+        self.send_header('Access-Control-Allow-Origin', allowed)
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Max-Age', '86400')
+
+    def _json(self, data, status=200):
         body = json.dumps(data, ensure_ascii=False).encode('utf-8')
-        self.send_response(200)
+        self.send_response(status)
+        self._cors_headers()
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', len(body))
         self.send_header('Cache-Control', 'no-cache')

@@ -3,11 +3,15 @@
 환경변수: SUPABASE_URL, SUPABASE_KEY
 """
 import os
+import sys
 import time
 from supabase import create_client
 
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
+
+ACTION_COOLDOWN = 2  # 액션 최소 간격 (초)
+VALID_ACTIONS = {'feed', 'wash', 'pet'}  # 허용된 액션 목록
 
 DECAY_PER_MIN = {
     'fullness': 2,
@@ -65,81 +69,96 @@ def apply_decay(sb, row):
 
 
 def get_stats_dict():
-    sb = get_sb()
-    row = get_row(sb)
-    row = apply_decay(sb, row)
-    return {
-        'fullness': clamp(row['fullness']),
-        'cleanliness': clamp(row['cleanliness']),
-        'happiness': clamp(row['happiness']),
-        'exp': row['exp'],
-        'expNeeded': 80 + row['level'] * 20,
-        'level': row['level'],
-    }
+    try:
+        sb = get_sb()
+        row = get_row(sb)
+        row = apply_decay(sb, row)
+        return {
+            'fullness': clamp(row['fullness']),
+            'cleanliness': clamp(row['cleanliness']),
+            'happiness': clamp(row['happiness']),
+            'exp': row['exp'],
+            'expNeeded': 80 + row['level'] * 20,
+            'level': row['level'],
+        }
+    except Exception as e:
+        print(f'[ERROR] get_stats_dict: {e}', file=sys.stderr)
+        return None
 
 
 def handle_action(action):
-    sb = get_sb()
-    row = get_row(sb)
-    row = apply_decay(sb, row)
-
-    fullness = row['fullness']
-    cleanliness = row['cleanliness']
-    happiness = row['happiness']
-    exp = row['exp']
-    level = row['level']
-
-    if action == 'feed':
-        fullness = min(100, fullness + 25)
-        happiness = min(100, happiness + 5)
-        msg = '조개다! 냠냠 맛있어~ 🐚'
-        otter_state = 'eating'
-        exp += 10
-    elif action == 'wash':
-        cleanliness = min(100, cleanliness + 25)
-        happiness = min(100, happiness + 5)
-        msg = '뽀득뽀득! 깨끗해졌다~ 🧼'
-        otter_state = 'playing'
-        exp += 10
-    elif action == 'pet':
-        happiness = min(100, happiness + 20)
-        cleanliness = min(100, cleanliness + 5)
-        msg = '좋아좋아~ 더 해줘! 💕'
-        otter_state = 'happy'
-        exp += 5
-    else:
+    # 입력 검증: 허용된 액션만 통과
+    if action not in VALID_ACTIONS:
         return {'ok': False, 'msg': '알 수 없는 행동이에요'}
 
-    leveled = False
-    exp_needed = 80 + level * 20
-    if exp >= exp_needed:
-        exp -= exp_needed
-        level += 1
-        leveled = True
+    try:
+        sb = get_sb()
+        row = get_row(sb)
 
-    sb.table('otter_stats').update({
-        'fullness': fullness,
-        'cleanliness': cleanliness,
-        'happiness': happiness,
-        'exp': exp,
-        'level': level,
-        'last_update': time.time(),
-    }).eq('id', 1).execute()
+        # 레이트 리밋: 마지막 업데이트로부터 최소 간격 체크
+        if time.time() - row['last_update'] < ACTION_COOLDOWN:
+            return {'ok': False, 'msg': '너무 빨라요! 잠시 후 다시 시도해주세요 🦦'}
 
-    row_updated = sb.table('otter_stats').select('*').eq('id', 1).execute().data[0]
-    stats = {
-        'fullness': clamp(row_updated['fullness']),
-        'cleanliness': clamp(row_updated['cleanliness']),
-        'happiness': clamp(row_updated['happiness']),
-        'exp': row_updated['exp'],
-        'expNeeded': 80 + row_updated['level'] * 20,
-        'level': row_updated['level'],
-    }
+        row = apply_decay(sb, row)
 
-    return {
-        'ok': True,
-        'msg': msg,
-        'state': 'levelup' if leveled else otter_state,
-        'leveled': leveled,
-        'stats': stats,
-    }
+        fullness = row['fullness']
+        cleanliness = row['cleanliness']
+        happiness = row['happiness']
+        exp = row['exp']
+        level = row['level']
+
+        if action == 'feed':
+            fullness = min(100, fullness + 25)
+            happiness = min(100, happiness + 5)
+            msg = '조개다! 냠냠 맛있어~ 🐚'
+            otter_state = 'eating'
+            exp += 10
+        elif action == 'wash':
+            cleanliness = min(100, cleanliness + 25)
+            happiness = min(100, happiness + 5)
+            msg = '뽀득뽀득! 깨끗해졌다~ 🧼'
+            otter_state = 'playing'
+            exp += 10
+        elif action == 'pet':
+            happiness = min(100, happiness + 20)
+            cleanliness = min(100, cleanliness + 5)
+            msg = '좋아좋아~ 더 해줘! 💕'
+            otter_state = 'happy'
+            exp += 5
+
+        leveled = False
+        exp_needed = 80 + level * 20
+        if exp >= exp_needed:
+            exp -= exp_needed
+            level += 1
+            leveled = True
+
+        sb.table('otter_stats').update({
+            'fullness': fullness,
+            'cleanliness': cleanliness,
+            'happiness': happiness,
+            'exp': exp,
+            'level': level,
+            'last_update': time.time(),
+        }).eq('id', 1).execute()
+
+        row_updated = sb.table('otter_stats').select('*').eq('id', 1).execute().data[0]
+        stats = {
+            'fullness': clamp(row_updated['fullness']),
+            'cleanliness': clamp(row_updated['cleanliness']),
+            'happiness': clamp(row_updated['happiness']),
+            'exp': row_updated['exp'],
+            'expNeeded': 80 + row_updated['level'] * 20,
+            'level': row_updated['level'],
+        }
+
+        return {
+            'ok': True,
+            'msg': msg,
+            'state': 'levelup' if leveled else otter_state,
+            'leveled': leveled,
+            'stats': stats,
+        }
+    except Exception as e:
+        print(f'[ERROR] handle_action({action}): {e}', file=sys.stderr)
+        return {'ok': False, 'msg': '서버에 문제가 생겼어요 😢'}
