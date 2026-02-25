@@ -28,48 +28,6 @@
       </button>
     </header>
 
-    <!-- 상태 바 (Stitch glassmorphism) -->
-    <section class="stats-section">
-      <!-- 포만감 (Hunger) -->
-      <div class="stat-card">
-        <div class="stat-card__row">
-          <div class="stat-card__label">
-            <span class="material-symbols-outlined stat-icon stat-icon--hunger" style="font-variation-settings: 'FILL' 1">set_meal</span>
-            <span class="stat-card__name">포만감</span>
-          </div>
-          <span class="stat-card__value stat-card__value--hunger" id="fullness-value">50%</span>
-        </div>
-        <div class="stat-card__track">
-          <div id="fullness-bar" class="stat-card__fill stat-card__fill--hunger" style="width:50%"></div>
-        </div>
-      </div>
-      <!-- 행복도 (Happiness) -->
-      <div class="stat-card">
-        <div class="stat-card__row">
-          <div class="stat-card__label">
-            <span class="material-symbols-outlined stat-icon stat-icon--happiness" style="font-variation-settings: 'FILL' 1">favorite</span>
-            <span class="stat-card__name">행복도</span>
-          </div>
-          <span class="stat-card__value stat-card__value--happiness" id="happiness-value">50%</span>
-        </div>
-        <div class="stat-card__track">
-          <div id="happiness-bar" class="stat-card__fill stat-card__fill--happiness" style="width:50%"></div>
-        </div>
-      </div>
-      <!-- 청결도 (Cleanliness) -->
-      <div class="stat-card">
-        <div class="stat-card__row">
-          <div class="stat-card__label">
-            <span class="material-symbols-outlined stat-icon stat-icon--cleanliness" style="font-variation-settings: 'FILL' 1">water_drop</span>
-            <span class="stat-card__name">청결도</span>
-          </div>
-          <span class="stat-card__value stat-card__value--cleanliness" id="cleanliness-value">50%</span>
-        </div>
-        <div class="stat-card__track">
-          <div id="cleanliness-bar" class="stat-card__fill stat-card__fill--cleanliness" style="width:50%"></div>
-        </div>
-      </div>
-    </section>
 
     <!-- 메인 캐릭터 영역 (ocean gradient + floating) -->
     <main class="otter-main">
@@ -97,11 +55,7 @@
       </button>
       <button class="tab" data-tab="care-log">
         <span class="material-symbols-outlined tab__icon">history</span>
-        돌봄 기록
-      </button>
-      <button class="tab" data-tab="todo">
-        <span class="material-symbols-outlined tab__icon">checklist</span>
-        할 일
+        방명록
       </button>
     </nav>
 
@@ -157,17 +111,6 @@
         </div>
       </section>
 
-      <!-- 할 일 탭 -->
-      <section id="tab-todo" class="tab-panel">
-        <div class="todo">
-          <div class="todo__input-area">
-            <input id="todo-input" type="text" class="todo__input" placeholder="할 일을 입력하세요..." maxlength="50">
-            <button id="todo-add" class="btn btn--primary">추가</button>
-          </div>
-          <ul id="todo-list" class="todo__list"></ul>
-          <p class="todo__empty" id="todo-empty">아직 할 일이 없어요!</p>
-        </div>
-      </section>
     </div>
 
     <!-- 레벨 표시 -->
@@ -243,7 +186,6 @@
   <script src="js/tamagotchi.js"></script>
 
   <script src="js/mood.js"></script>
-  <script src="js/todo.js"></script>
   <script src="js/share.js"></script>
   <script src="js/notification.js"></script>
   <script src="js/app.js"></script>

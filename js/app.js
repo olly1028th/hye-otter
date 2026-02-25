@@ -117,23 +117,6 @@
   function updateStatusBars(stats) {
     currentStats = { ...currentStats, ...stats };
 
-    const bars = {
-      fullness: document.getElementById('fullness-bar'),
-      cleanliness: document.getElementById('cleanliness-bar'),
-      happiness: document.getElementById('happiness-bar'),
-    };
-    const values = {
-      fullness: document.getElementById('fullness-value'),
-      cleanliness: document.getElementById('cleanliness-value'),
-      happiness: document.getElementById('happiness-value'),
-    };
-    if (bars.fullness) bars.fullness.style.width = stats.fullness + '%';
-    if (bars.cleanliness) bars.cleanliness.style.width = stats.cleanliness + '%';
-    if (bars.happiness) bars.happiness.style.width = stats.happiness + '%';
-    if (values.fullness) values.fullness.textContent = Math.round(stats.fullness) + '%';
-    if (values.cleanliness) values.cleanliness.textContent = Math.round(stats.cleanliness) + '%';
-    if (values.happiness) values.happiness.textContent = Math.round(stats.happiness) + '%';
-
     // 레벨 & 경험치
     const $level = document.getElementById('otter-level');
     const $levelTop = document.getElementById('otter-level-top');
@@ -441,7 +424,6 @@
       }, 30000);
     });
 
-    Todo.init();
     initCareActions();
 
     Notification_.requestPermission();
