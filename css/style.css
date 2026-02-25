@@ -112,6 +112,13 @@ body {
   color: var(--text);
 }
 
+.header__subtitle {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
 .header__badge {
   display: flex;
   align-items: center;

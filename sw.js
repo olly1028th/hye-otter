@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyeotter-v8';
+const CACHE_NAME = 'hyeotter-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS = [
   './js/api.js',
   './js/tamagotchi.js',
   './js/mood.js',
-  './js/todo.js',
   './js/share.js',
   './js/notification.js',
   './js/app.js',
