@@ -1,7 +1,7 @@
 {
-  "name": "혜달이의 상태 - Otter Timer",
+  "name": "혜달이의 상태 - Haedal Center",
   "short_name": "혜달이",
-  "description": "귀여운 수달 친구와 함께하는 뽀모도로 타이머",
+  "description": "귀여운 수달 친구 혜달이와 함께하는 다마고치",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFF8F0",

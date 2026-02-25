@@ -13,9 +13,6 @@ const Share = (() => {
     if (data.cleanliness != null) params.set('c', data.cleanliness);
     if (data.happiness != null) params.set('hp', data.happiness);
     if (data.level != null) params.set('lv', data.level);
-    if (data.timerRunning) params.set('tr', '1');
-    if (data.timerBreak) params.set('tb', '1');
-    if (data.pomoCount) params.set('pc', data.pomoCount);
     if (data.message) params.set('msg', data.message);
     if (data.todos && data.todos.length > 0) {
       params.set('td', JSON.stringify(data.todos.slice(0, 5).map(t => t.text)));
@@ -34,9 +31,6 @@ const Share = (() => {
     if (params.has('c')) data.cleanliness = Number(params.get('c'));
     if (params.has('hp')) data.happiness = Number(params.get('hp'));
     if (params.has('lv')) data.level = Number(params.get('lv'));
-    if (params.has('tr')) data.timerRunning = true;
-    if (params.has('tb')) data.timerBreak = true;
-    if (params.has('pc')) data.pomoCount = Number(params.get('pc'));
     if (params.has('msg')) data.message = params.get('msg');
     if (params.has('td')) {
       try { data.todos = JSON.parse(params.get('td')); } catch (e) { /* 무시 */ }
@@ -78,14 +72,11 @@ const Share = (() => {
     // 미리보기 렌더링
     if ($preview) {
       const moodName = Mood.getMoodName(stateData.mood) || '기본';
-      const status = stateData.timerRunning
-        ? (stateData.timerBreak ? '☕ 휴식 중' : '🍅 집중 중')
-        : '대기 중';
 
       $preview.innerHTML = `
         <div class="preview-otter">${OtterSVG.render(stateData.mood || 'default')}</div>
         <div class="preview-mood">기분: ${moodName}</div>
-        <div class="preview-status">${status} · Lv.${stateData.level || 1}</div>
+        <div class="preview-status">Lv.${stateData.level || 1}</div>
       `;
     }
 

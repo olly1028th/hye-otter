@@ -1,6 +1,6 @@
 /**
  * 알림 모듈
- * 뽀모도로 완료 시 '첨벙!' 물소리 + 브라우저 알림
+ * '첨벙!' 물소리 + 브라우저 알림
  */
 const Notification_ = (() => {
   let audioCtx = null;
@@ -111,29 +111,12 @@ const Notification_ = (() => {
       new window.Notification(title, {
         body: body,
         icon: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="50" font-size="50">🦦</text></svg>'),
-        tag: 'hyeotter-timer',
+        tag: 'hyeotter',
       });
     } catch (e) {
       // 알림 실패 시 무시
     }
   }
 
-  /** 뽀모도로 완료 알림 (소리 + 브라우저 알림) */
-  function notifyTimerComplete(isBreak, pomoCount) {
-    playSplash();
-
-    if (isBreak) {
-      showBrowserNotification(
-        '첨벙! 집중 시간 끝! 🦦',
-        `${pomoCount}번째 뽀모도로 완료! 잠깐 쉬어가자~`
-      );
-    } else {
-      showBrowserNotification(
-        '첨벙! 휴식 끝! 🦦',
-        '다시 집중할 시간이야! 화이팅!'
-      );
-    }
-  }
-
-  return { requestPermission, notifyTimerComplete, playSplash };
+  return { requestPermission, showBrowserNotification, playSplash };
 })();

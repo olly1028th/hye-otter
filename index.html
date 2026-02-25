@@ -91,11 +91,7 @@
 
     <!-- 탭 네비게이션 -->
     <nav class="tabs">
-      <button class="tab tab--active" data-tab="timer">
-        <span class="material-symbols-outlined tab__icon">timer</span>
-        타이머
-      </button>
-      <button class="tab" data-tab="mood">
+      <button class="tab tab--active" data-tab="mood">
         <span class="material-symbols-outlined tab__icon">mood</span>
         기분
       </button>
@@ -107,34 +103,8 @@
 
     <!-- 탭 컨텐츠 -->
     <div class="tab-content">
-      <!-- 타이머 탭 -->
-      <section id="tab-timer" class="tab-panel tab-panel--active">
-        <div class="timer">
-          <div id="timer-display" class="timer__display">25:00</div>
-          <div class="timer__label">
-            <span id="timer-mode">집중 시간</span>
-          </div>
-          <div class="timer__controls">
-            <button id="timer-start" class="btn btn--primary">시작</button>
-            <button id="timer-pause" class="btn btn--secondary" hidden>일시정지</button>
-            <button id="timer-reset" class="btn btn--outline">초기화</button>
-          </div>
-          <div class="timer__settings">
-            <label>
-              집중: <input id="focus-min" type="number" value="25" min="1" max="90" class="timer__input"> 분
-            </label>
-            <label>
-              휴식: <input id="break-min" type="number" value="5" min="1" max="30" class="timer__input"> 분
-            </label>
-          </div>
-          <div class="timer__history">
-            <p>오늘 완료한 뽀모도로: <strong id="pomo-count">0</strong>회</p>
-          </div>
-        </div>
-      </section>
-
       <!-- 기분 탭 -->
-      <section id="tab-mood" class="tab-panel">
+      <section id="tab-mood" class="tab-panel tab-panel--active">
         <div class="mood">
           <p class="mood__question">지금 기분이 어때요?</p>
           <div class="mood__grid">
@@ -253,7 +223,7 @@
   <script src="js/otter-svg.js"></script>
   <script src="js/api.js"></script>
   <script src="js/tamagotchi.js"></script>
-  <script src="js/timer.js"></script>
+
   <script src="js/mood.js"></script>
   <script src="js/todo.js"></script>
   <script src="js/share.js"></script>

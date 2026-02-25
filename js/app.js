@@ -119,10 +119,8 @@
     if (idleMessageTimer) clearInterval(idleMessageTimer);
 
     idleMessageTimer = setInterval(() => {
-      // 수동 기분 선택 중이거나, 타이머 진행 중이면 스킵
+      // 수동 기분 선택 중이면 스킵
       if (manualMoodTimeout) return;
-      const timer = Timer.getStatus();
-      if (timer.isRunning) return;
 
       const details = Tamagotchi.getMoodDetails();
       const $statusText = document.getElementById('otter-status-text');
@@ -245,9 +243,6 @@
     if (statusText) {
       const moodName = Mood.getMoodName(data.mood) || '';
       let msg = data.message || '';
-      if (data.timerRunning) {
-        msg += data.timerBreak ? ' ☕ 휴식 중' : ' 🍅 집중 중';
-      }
       if (moodName) msg = moodName + (msg ? ' · ' + msg : '');
       statusText.textContent = msg || '혜달이의 현재 상태예요!';
     }
@@ -282,7 +277,6 @@
   // === 현재 상태 수집 (공유용) ===
   function collectState() {
     const tama = Tamagotchi.getState();
-    const timer = Timer.getStatus();
     const mood = Mood.getCurrent();
     const todos = Todo.getItems().filter(t => !t.done);
 
@@ -292,9 +286,6 @@
       cleanliness: tama.cleanliness,
       happiness: tama.happiness,
       level: tama.level,
-      timerRunning: timer.isRunning,
-      timerBreak: timer.isBreak,
-      pomoCount: timer.pomoCount,
       todos,
     };
   }
@@ -312,27 +303,6 @@
     // 다마고치 초기화 (서버 API 폴링 시작)
     Tamagotchi.init((stats) => {
       updateStatusBars(stats);
-    });
-
-    // 타이머 초기화
-    Timer.init({
-      onTick: ({ isRunning, isBreak }) => {
-        if (isRunning) {
-          const state = isBreak ? 'happy' : 'focused';
-          if (currentOtterState !== state) {
-            updateOtter(state, isBreak ? '휴식 중~ ☕' : '집중하는 중! 🔥');
-          }
-        }
-      },
-      onComplete: ({ isBreak, pomoCount }) => {
-        Notification_.notifyTimerComplete(isBreak, pomoCount);
-
-        if (isBreak) {
-          updateOtter('happy', `첨벙! 집중 끝! ${pomoCount}번째 뽀모도로 완료! 🎉`);
-        } else {
-          updateOtter('excited', '첨벙! 휴식 끝! 다시 집중하자! 💪');
-        }
-      },
     });
 
     // 기분 모듈 초기화 (수동 기분 선택 → 30초 동안 자동 전환 잠금)
