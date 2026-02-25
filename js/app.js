@@ -307,16 +307,22 @@
 
     // 기분 모듈 초기화 (수동 기분 선택 → 30초 동안 자동 전환 잠금)
     Mood.init((mood) => {
-      const otterState = mood || 'default';
+      const otterStateMap = {
+        gaming: 'playing',
+        studying: 'focused',
+        resting: 'happy',
+        sleeping: 'sleeping',
+        eating: 'eating',
+        out: 'excited',
+      };
+      const otterState = otterStateMap[mood] || 'default';
       const messages = {
-        happy: '기분이 좋구나! 나도 행복해~ 😊',
-        focused: '집중 모드! 화이팅! 🔥',
-        tired: '피곤하구나... 좀 쉬자! 💤',
-        stressed: '힘들면 잠깐 쉬어도 괜찮아 🫂',
-        excited: '와~ 신난다!! 🎉',
-        bored: '심심해? 같이 놀까? 🎾',
-        loved: '사랑해~ 행복해~ 💕',
-        hungry: '배고프다! 맛있는 거 먹자! 🍽️',
+        gaming: '게임 중이구나! 즐겨~ 🎮',
+        studying: '공부 화이팅! 집중! 📚',
+        resting: '푹 쉬어~ 편안하게~ ☕',
+        sleeping: '쿨쿨... 좋은 꿈 꿔! 💤',
+        eating: '맛있게 먹어! 냠냠~ 🍚',
+        out: '외출 중이구나! 조심해~ 🚶',
       };
       updateOtter(otterState, messages[mood] || '');
 

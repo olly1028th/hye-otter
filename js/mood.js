@@ -10,14 +10,12 @@ const Mood = (() => {
   let onChange = null;
 
   const moodNames = {
-    happy: '행복해 😊',
-    focused: '집중! 🔥',
-    tired: '피곤해 😴',
-    stressed: '힘들어 😰',
-    excited: '신나! 🥳',
-    bored: '심심해 😑',
-    loved: '사랑해 🥰',
-    hungry: '배고파 🍽️',
+    gaming: '게임중 🎮',
+    studying: '공부중 📚',
+    resting: '휴식중 ☕',
+    sleeping: '쿨쿨 😴',
+    eating: '밥먹는중 🍚',
+    out: '외출중 🚶',
   };
 
   function load() {
