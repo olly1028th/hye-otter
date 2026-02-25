@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyeotter-v7';
+const CACHE_NAME = 'hyeotter-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -11,7 +11,6 @@ const ASSETS = [
   './js/share.js',
   './js/notification.js',
   './js/app.js',
-  './share.html',
 ];
 
 self.addEventListener('install', (e) => {

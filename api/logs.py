@@ -1,24 +1,18 @@
-"""POST /api/action/{action} - 혜달이 행동 실행"""
+"""GET /api/logs - 돌봄 기록 조회"""
 from http.server import BaseHTTPRequestHandler
 import json
 import os
 import sys
-from urllib.parse import urlparse
 
-# api/ 디렉토리를 Python 경로에 추가 (상위 모듈 임포트용)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from _db import handle_action
+sys.path.insert(0, os.path.dirname(__file__))
+from _db import get_logs
 
 ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN', '*')
 
 
 class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        path = urlparse(self.path).path
-        action = path.rsplit('/', 1)[-1]
-        body = self._read_body()
-        message = body.get('message', '')
-        result = handle_action(action, message)
+    def do_GET(self):
+        result = get_logs()
         self._json(result)
 
     def do_OPTIONS(self):
@@ -26,15 +20,9 @@ class handler(BaseHTTPRequestHandler):
         self._cors_headers()
         self.end_headers()
 
-    def _read_body(self):
-        length = int(self.headers.get('Content-Length', 0))
-        if length > 0:
-            return json.loads(self.rfile.read(length))
-        return {}
-
     def _cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
 
     def _json(self, data, status=200):

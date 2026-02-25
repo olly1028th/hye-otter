@@ -1,24 +1,20 @@
-"""POST /api/action/{action} - 혜달이 행동 실행"""
+"""POST /api/mood - 혜달이 상태(기분) 설정"""
 from http.server import BaseHTTPRequestHandler
 import json
 import os
 import sys
-from urllib.parse import urlparse
 
-# api/ 디렉토리를 Python 경로에 추가 (상위 모듈 임포트용)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from _db import handle_action
+sys.path.insert(0, os.path.dirname(__file__))
+from _db import set_mood
 
 ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN', '*')
 
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        path = urlparse(self.path).path
-        action = path.rsplit('/', 1)[-1]
         body = self._read_body()
-        message = body.get('message', '')
-        result = handle_action(action, message)
+        mood = body.get('mood', '')
+        result = set_mood(mood)
         self._json(result)
 
     def do_OPTIONS(self):

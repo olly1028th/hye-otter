@@ -1,6 +1,7 @@
 /**
  * 혜달이의 상태 - 메인 앱 (Stitch Design + 스탯 반응형 시스템)
  * 스탯 수치에 따라 해달이 표정, 비주얼, 대사가 실시간으로 변합니다.
+ * 돌봄 알림, 돌봄 기록, 상태별 제안 기능 포함.
  */
 (function App() {
   'use strict';
@@ -14,11 +15,54 @@
   let manualMoodTimeout = null;
   // 아이들 메시지 로테이션 타이머
   let idleMessageTimer = null;
+  // 돌봄 알림 감지용 (마지막 액션 타임스탬프)
+  let lastKnownActionAt = 0;
+
+  // 상태별 혜달이 SVG 매핑
+  const otterStateMap = {
+    gaming: 'playing',
+    studying: 'focused',
+    resting: 'happy',
+    sleeping: 'sleeping',
+    eating: 'eating',
+    out: 'excited',
+  };
+
+  // 상태별 메시지
+  const moodMessages = {
+    gaming: '게임 중이구나! 즐겨~ 🎮',
+    studying: '공부 화이팅! 집중! 📚',
+    resting: '푹 쉬어~ 편안하게~ ☕',
+    sleeping: '쿨쿨... 좋은 꿈 꿔! 💤',
+    eating: '맛있게 먹어! 냠냠~ 🍚',
+    out: '외출 중이구나! 조심해~ 🚶',
+  };
+
+  // 상태별 돌봄 제안 (B8)
+  const careSuggestions = {
+    gaming: '게임 중인 혜달이에게 응원을 보내보세요!',
+    studying: '공부 중인 혜달이, 간식으로 응원해주세요!',
+    resting: '쉬고 있는 혜달이를 쓰다듬어 주세요~',
+    sleeping: '자고 있어요... 살짝 쓰다듬어 줄까요?',
+    eating: '밥 먹고 있어요! 같이 먹는 느낌으로 조개를!',
+    out: '외출 중! 돌아오면 반겨줄 준비를 해요~',
+  };
+
+  // 액션 이모지
+  const actionEmoji = {
+    feed: '🐚',
+    wash: '🧼',
+    pet: '💕',
+  };
+  const actionName = {
+    feed: '조개 주기',
+    wash: '비누칠하기',
+    pet: '쓰다듬기',
+  };
 
   // === 혜달이 캐릭터 업데이트 (스탯 기반 오버레이 포함) ===
   function updateOtter(state, message) {
     currentOtterState = state || 'default';
-    // 스탯을 함께 전달하여 SVG 오버레이 반영
     OtterSVG.mount('otter-container', currentOtterState, currentStats);
 
     const $statusText = document.getElementById('otter-status-text');
@@ -46,6 +90,27 @@
     showSpeech._timer = setTimeout(() => {
       $speech.hidden = true;
     }, duration);
+  }
+
+  // === 돌봄 알림 토스트 (B6) ===
+  function showCareToast(text) {
+    const $toast = document.getElementById('care-toast');
+    const $text = document.getElementById('care-toast-text');
+    if (!$toast || !$text) return;
+
+    $text.textContent = text;
+    $toast.hidden = false;
+    $toast.classList.remove('care-toast--hide');
+
+    clearTimeout(showCareToast._timer);
+    showCareToast._timer = setTimeout(() => {
+      $toast.classList.add('care-toast--hide');
+      setTimeout(() => { $toast.hidden = true; }, 300);
+    }, 4000);
+
+    // 브라우저 알림도 함께
+    Notification_.showBrowserNotification('혜달이를 돌봐줬어요!', text);
+    Notification_.playSplash();
   }
 
   // === 상태바 업데이트 ===
@@ -82,6 +147,17 @@
     if ($expText) $expText.textContent = stats.exp;
     if ($expMax) $expMax.textContent = stats.expNeeded;
 
+    // 서버에서 mood가 오면 동기화
+    if (stats.mood) {
+      Mood.setFromServer(stats.mood);
+    }
+
+    // 돌봄 알림 감지 (B6) - lastActionAt가 바뀌면 누군가 돌봄
+    if (stats.lastActionAt && stats.lastActionAt > lastKnownActionAt && lastKnownActionAt > 0) {
+      showCareToast('누군가 혜달이를 돌봐줬어요! 🦦💕');
+    }
+    if (stats.lastActionAt) lastKnownActionAt = stats.lastActionAt;
+
     // 스탯 변화 → 자동 무드 판정 & 표정/대사 전환
     reactToStatChange();
   }
@@ -112,6 +188,19 @@
       const $statusText = document.getElementById('otter-status-text');
       if ($statusText) $statusText.textContent = criticalWarning.msg;
     }
+
+    // 상태별 제안 업데이트 (B8)
+    updateCareSuggestion();
+  }
+
+  // === 상태별 돌봄 제안 (B8) ===
+  function updateCareSuggestion() {
+    const mood = Mood.getCurrent();
+    const $statusText = document.getElementById('otter-status-text');
+    if (!mood || !$statusText) return;
+    // 위급 상태가 아닐 때만 제안 표시
+    const warnings = Tamagotchi.getWarnings();
+    if (warnings.some(w => w.level === 'critical')) return;
   }
 
   // === 아이들 메시지 로테이션 (10초마다 상황별 대사 변경) ===
@@ -143,8 +232,79 @@
         tab.classList.add('tab--active');
         const panel = document.getElementById('tab-' + tab.dataset.tab);
         if (panel) panel.classList.add('tab-panel--active');
+
+        // 돌봄 기록 탭 열릴 때 로그 새로고침
+        if (tab.dataset.tab === 'care-log') {
+          loadCareLog();
+        }
       });
     });
+  }
+
+  // === 돌봄 기록 로드 (A3 + B7) ===
+  async function loadCareLog() {
+    const data = await API.getLogs();
+    renderCareLog(data);
+  }
+
+  function renderCareLog(data) {
+    const $list = document.getElementById('care-log-list');
+    const $empty = document.getElementById('care-log-empty');
+    if (!$list) return;
+
+    $list.innerHTML = '';
+
+    // 오늘의 요약 (B7)
+    const today = data.today || {};
+    const $total = document.getElementById('care-today-total');
+    const $feed = document.getElementById('care-today-feed');
+    const $wash = document.getElementById('care-today-wash');
+    const $pet = document.getElementById('care-today-pet');
+    if ($total) $total.textContent = today.total || 0;
+    if ($feed) $feed.textContent = today.feed || 0;
+    if ($wash) $wash.textContent = today.wash || 0;
+    if ($pet) $pet.textContent = today.pet || 0;
+
+    const logs = data.logs || [];
+    if ($empty) $empty.hidden = logs.length > 0;
+
+    logs.forEach(log => {
+      const li = document.createElement('li');
+      li.className = 'care-log__item';
+
+      const emoji = actionEmoji[log.action] || '✨';
+      const name = actionName[log.action] || log.action;
+      const time = formatLogTime(log.created_at);
+      const msg = log.message ? `<span class="care-log__message">"${escapeHtml(log.message)}"</span>` : '';
+
+      li.innerHTML = `
+        <span class="care-log__emoji">${emoji}</span>
+        <div class="care-log__detail">
+          <span class="care-log__action">${name}</span>
+          ${msg}
+        </div>
+        <span class="care-log__time">${time}</span>
+      `;
+      $list.appendChild(li);
+    });
+  }
+
+  function formatLogTime(timestamp) {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = (now - date) / 1000;
+
+    if (diff < 60) return '방금';
+    if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+    if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   // === 하트 플로팅 ===
@@ -198,12 +358,21 @@
     }
   }
 
+  // === 메시지 입력 가져오기 (B5) ===
+  function getCareMessage() {
+    const $input = document.getElementById('care-message');
+    if (!$input) return '';
+    const msg = $input.value.trim();
+    $input.value = '';
+    return msg;
+  }
+
   // === 돌보기 액션 바인딩 ===
   function initCareActions() {
     const actions = {
-      'care-feed': () => Tamagotchi.feed(),
-      'care-wash': () => Tamagotchi.wash(),
-      'care-pet': () => Tamagotchi.pet(),
+      'care-feed': () => Tamagotchi.feed(getCareMessage()),
+      'care-wash': () => Tamagotchi.wash(getCareMessage()),
+      'care-pet': () => Tamagotchi.pet(getCareMessage()),
     };
 
     Object.entries(actions).forEach(([id, action]) => {
@@ -233,52 +402,10 @@
     });
   }
 
-  // === 공유 데이터로 읽기 전용 표시 ===
-  function showSharedView(data) {
-    if (data.mood) {
-      updateOtter(data.mood);
-    }
-
-    const statusText = document.getElementById('otter-status-text');
-    if (statusText) {
-      const moodName = Mood.getMoodName(data.mood) || '';
-      let msg = data.message || '';
-      if (moodName) msg = moodName + (msg ? ' · ' + msg : '');
-      statusText.textContent = msg || '혜달이의 현재 상태예요!';
-    }
-
-    if (data.fullness != null) {
-      updateStatusBars({
-        fullness: data.fullness,
-        cleanliness: data.cleanliness || 50,
-        happiness: data.happiness || 50,
-        level: data.level || 1,
-        exp: 0,
-        expNeeded: 100,
-      });
-    }
-
-    if (data.todos) {
-      const $list = document.getElementById('todo-list');
-      const $empty = document.getElementById('todo-empty');
-      if ($list) {
-        $list.innerHTML = '';
-        data.todos.forEach(text => {
-          const li = document.createElement('li');
-          li.className = 'todo__item';
-          li.innerHTML = `<span class="todo__text">${text}</span>`;
-          $list.appendChild(li);
-        });
-      }
-      if ($empty) $empty.hidden = data.todos.length > 0;
-    }
-  }
-
   // === 현재 상태 수집 (공유용) ===
   function collectState() {
     const tama = Tamagotchi.getState();
     const mood = Mood.getCurrent();
-    const todos = Todo.getItems().filter(t => !t.done);
 
     return {
       mood: mood || Tamagotchi.getAutoMood(),
@@ -286,7 +413,6 @@
       cleanliness: tama.cleanliness,
       happiness: tama.happiness,
       level: tama.level,
-      todos,
     };
   }
 
@@ -294,11 +420,7 @@
   function init() {
     initTabs();
 
-    const sharedData = Share.init(collectState);
-    if (sharedData) {
-      showSharedView(sharedData);
-      return;
-    }
+    Share.init(collectState);
 
     // 다마고치 초기화 (서버 API 폴링 시작)
     Tamagotchi.init((stats) => {
@@ -307,24 +429,8 @@
 
     // 기분 모듈 초기화 (수동 기분 선택 → 30초 동안 자동 전환 잠금)
     Mood.init((mood) => {
-      const otterStateMap = {
-        gaming: 'playing',
-        studying: 'focused',
-        resting: 'happy',
-        sleeping: 'sleeping',
-        eating: 'eating',
-        out: 'excited',
-      };
       const otterState = otterStateMap[mood] || 'default';
-      const messages = {
-        gaming: '게임 중이구나! 즐겨~ 🎮',
-        studying: '공부 화이팅! 집중! 📚',
-        resting: '푹 쉬어~ 편안하게~ ☕',
-        sleeping: '쿨쿨... 좋은 꿈 꿔! 💤',
-        eating: '맛있게 먹어! 냠냠~ 🍚',
-        out: '외출 중이구나! 조심해~ 🚶',
-      };
-      updateOtter(otterState, messages[mood] || '');
+      updateOtter(otterState, moodMessages[mood] || '');
 
       // 수동 기분 선택 후 30초 동안 자동 전환 잠금
       clearTimeout(manualMoodTimeout);

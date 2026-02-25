@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/api/stats", "destination": "/api/stats" },
     { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/mood", "destination": "/api/mood" },
+    { "source": "/api/logs", "destination": "/api/logs" },
     { "source": "/api/action/:action", "destination": "/api/action/[action]" }
   ],
   "headers": [

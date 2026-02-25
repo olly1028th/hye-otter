@@ -1,12 +1,9 @@
 /**
  * 기분/감정 상태 모듈
+ * 서버에 상태를 저장하고, 폴링으로 동기화합니다.
  */
 const Mood = (() => {
-  const STORAGE_KEY = 'hyeotter_mood';
-  const MAX_LOG = 20;
-
   let currentMood = null;
-  let moodLog = [];
   let onChange = null;
 
   const moodNames = {
@@ -18,48 +15,6 @@ const Mood = (() => {
     out: '외출중 🚶',
   };
 
-  function load() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const data = JSON.parse(saved);
-        currentMood = data.current || null;
-        moodLog = data.log || [];
-      }
-    } catch (e) {
-      // 무시
-    }
-  }
-
-  function save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        current: currentMood,
-        log: moodLog,
-      }));
-    } catch (e) {
-      // 무시
-    }
-  }
-
-  function formatTime(date) {
-    return new Date(date).toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-
-  function renderLog() {
-    const $list = document.getElementById('mood-log-list');
-    if (!$list) return;
-    $list.innerHTML = '';
-    moodLog.slice().reverse().forEach(entry => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span>${moodNames[entry.mood] || entry.mood}</span><span class="mood-time">${formatTime(entry.time)}</span>`;
-      $list.appendChild(li);
-    });
-  }
-
   function updateButtons() {
     document.querySelectorAll('.mood__btn').forEach(btn => {
       btn.classList.toggle('mood--selected', btn.dataset.mood === currentMood);
@@ -68,17 +23,22 @@ const Mood = (() => {
 
   function selectMood(mood) {
     currentMood = mood;
-    moodLog.push({ mood, time: Date.now() });
-    if (moodLog.length > MAX_LOG) moodLog.shift();
-    save();
     updateButtons();
-    renderLog();
+    // 서버에 저장
+    API.setMood(mood);
     if (onChange) onChange(mood);
+  }
+
+  /** 서버 폴링 데이터로 기분 동기화 (방문자가 볼 수 있도록) */
+  function setFromServer(mood) {
+    if (mood && mood !== currentMood) {
+      currentMood = mood;
+      updateButtons();
+    }
   }
 
   function init(callback) {
     onChange = callback;
-    load();
 
     // 이벤트 바인딩
     document.querySelectorAll('.mood__btn').forEach(btn => {
@@ -86,7 +46,6 @@ const Mood = (() => {
     });
 
     updateButtons();
-    renderLog();
   }
 
   function getCurrent() {
@@ -97,5 +56,5 @@ const Mood = (() => {
     return moodNames[mood] || '';
   }
 
-  return { init, getCurrent, getMoodName, moodNames };
+  return { init, getCurrent, getMoodName, setFromServer, moodNames };
 })();

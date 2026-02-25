@@ -23,6 +23,8 @@ const Tamagotchi = (() => {
     exp: 0,
     expNeeded: 100,
     level: 1,
+    mood: null,
+    lastActionAt: 0,
   };
   let onChange = null;
   let lastAction = { feed: 0, wash: 0, pet: 0 };
@@ -105,54 +107,44 @@ const Tamagotchi = (() => {
     let mood = 'default';
 
     // --- 1단계: 위급 상태 (critical) - 최우선 ---
-    // 모든 스탯 위험: 절망
     if (fl === 'critical' && cl === 'critical' && hl === 'critical') {
       mood = 'sad';
     }
-    // 배고픔이 위급하면 무조건 hungry
     else if (fl === 'critical') {
       mood = 'hungry';
     }
-    // 청결도 위급 + 행복도도 낮음: stressed
     else if (cl === 'critical' && (hl === 'critical' || hl === 'low')) {
       mood = 'stressed';
     }
-    // 청결도만 위급: 불편
     else if (cl === 'critical') {
       mood = 'stressed';
     }
-    // 행복도만 위급: 슬픔
     else if (hl === 'critical') {
       mood = 'sad';
     }
 
     // --- 2단계: 주의 상태 (low) ---
     else if (fl === 'low' && hl === 'low') {
-      // 배고프고 우울 → hungry (배고픔 우선)
       mood = 'hungry';
     }
     else if (fl === 'low') {
       mood = 'hungry';
     }
     else if (cl === 'low' && hl === 'low') {
-      // 더럽고 우울 → bored (무기력)
       mood = 'bored';
     }
     else if (hl === 'low') {
       mood = 'sad';
     }
     else if (cl === 'low') {
-      // 청결도만 낮음 → 살짝 불편하지만 괜찮음
       mood = 'bored';
     }
 
     // --- 3단계: 최상 상태 (모두 높음) ---
     else if (fl === 'max' && cl === 'max' && hl === 'max') {
-      // 올 맥스: 최고로 신남!
       mood = 'excited';
     }
     else if ((hl === 'max' || hl === 'great') && fl !== 'low' && cl !== 'low') {
-      // 행복도가 최고 → 사랑받는 느낌
       if (f > THRESHOLD.HIGH && c > THRESHOLD.HIGH) {
         mood = 'loved';
       } else {
@@ -165,11 +157,9 @@ const Tamagotchi = (() => {
 
     // --- 4단계: 시간대 보정 ---
     else if (time === 'night' && h > THRESHOLD.LOW && wellness > 35) {
-      // 밤시간 + 스탯 적당 → 졸림
       mood = 'tired';
     }
     else if (time === 'lunch' && fl === 'medium') {
-      // 점심시간 + 포만감 보통 → 배고픔 힌트
       mood = 'hungry';
     }
 
@@ -190,7 +180,6 @@ const Tamagotchi = (() => {
 
   /**
    * 상세 무드 정보 반환 (app.js에서 메시지 표시에 활용)
-   * @returns {{ mood: string, intensity: number, message: string, wellness: number, warnings: Array }}
    */
   function getMoodDetails() {
     const mood = getAutoMood();
@@ -198,7 +187,6 @@ const Tamagotchi = (() => {
     const warnings = getWarnings();
     const time = getTimeOfDay();
 
-    // 무드별 강도 계산 (0 ~ 1)
     let intensity = 0.5;
     if (mood === 'hungry') intensity = 1 - (state.fullness / 100);
     else if (mood === 'stressed') intensity = 1 - (state.cleanliness / 100);
@@ -206,7 +194,6 @@ const Tamagotchi = (() => {
     else if (mood === 'happy' || mood === 'excited' || mood === 'loved') intensity = wellness / 100;
     else if (mood === 'tired') intensity = time === 'night' ? 0.8 : 0.4;
 
-    // 무드별 상황 메시지
     const messages = {
       hungry: [
         { min: 0.8, text: '너무 배고파... 조개 줘! 🥺' },
@@ -265,26 +252,26 @@ const Tamagotchi = (() => {
     return { ...state };
   }
 
-  async function feed() {
+  async function feed(message) {
     if (isOnCooldown('feed')) return { ok: false, msg: '아직 배부른 것 같아요!' };
     lastAction.feed = Date.now();
-    const result = await API.doAction('feed');
+    const result = await API.doAction('feed', message);
     if (result.ok && result.stats) updateFromServer(result.stats);
     return result;
   }
 
-  async function wash() {
+  async function wash(message) {
     if (isOnCooldown('wash')) return { ok: false, msg: '아직 깨끗해요!' };
     lastAction.wash = Date.now();
-    const result = await API.doAction('wash');
+    const result = await API.doAction('wash', message);
     if (result.ok && result.stats) updateFromServer(result.stats);
     return result;
   }
 
-  async function pet() {
+  async function pet(message) {
     if (isOnCooldown('pet')) return { ok: false, msg: '기분 좋아~ 잠깐만!' };
     lastAction.pet = Date.now();
-    const result = await API.doAction('pet');
+    const result = await API.doAction('pet', message);
     if (result.ok && result.stats) updateFromServer(result.stats);
     return result;
   }
