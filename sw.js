@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hyeotter-v6';
+const CACHE_NAME = 'hyeotter-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -6,13 +6,11 @@ const ASSETS = [
   './js/otter-svg.js',
   './js/api.js',
   './js/tamagotchi.js',
-  './js/timer.js',
   './js/mood.js',
   './js/todo.js',
   './js/share.js',
   './js/notification.js',
   './js/app.js',
-  './share.html',
 ];
 
 self.addEventListener('install', (e) => {

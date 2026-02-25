@@ -35,22 +35,6 @@
       color: var(--text-light);
       margin-bottom: 16px;
     }
-    .shared-timer-status {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-    }
-    .shared-timer-status.focus {
-      background: #FFF0E6;
-      color: var(--accent-dark);
-    }
-    .shared-timer-status.break {
-      background: #E8F8EC;
-      color: #3A8F50;
-    }
     .shared-todos {
       text-align: left;
       background: var(--card);
@@ -124,18 +108,13 @@
       'use strict';
 
       const moodNames = {
-        happy: '행복해 😊',
-        focused: '집중! 🔥',
-        tired: '피곤해 😴',
-        stressed: '힘들어 😰',
-        excited: '신나! 🥳',
-        bored: '심심해 😑',
-        loved: '사랑해 🥰',
-        hungry: '배고파 🍽️',
+        gaming: '게임중 🎮',
+        studying: '공부중 📚',
+        resting: '휴식중 ☕',
+        sleeping: '쿨쿨 😴',
+        eating: '밥먹는중 🍚',
+        out: '외출중 🚶',
         default: '기본 🦦',
-        eating: '냠냠 중 🐟',
-        playing: '놀고 있어 ⚽',
-        sleeping: '자는 중 💤',
       };
 
       function decodeState() {
@@ -148,9 +127,6 @@
         if (params.has('hp')) data.happiness = Number(params.get('hp'));
         if (params.has('e')) data.energy = Number(params.get('e'));
         if (params.has('lv')) data.level = Number(params.get('lv'));
-        if (params.has('tr')) data.timerRunning = true;
-        if (params.has('tb')) data.timerBreak = true;
-        if (params.has('pc')) data.pomoCount = Number(params.get('pc'));
         if (params.has('msg')) data.message = params.get('msg');
         if (params.has('td')) {
           try { data.todos = JSON.parse(params.get('td')); } catch (e) { /* 무시 */ }
@@ -164,9 +140,19 @@
         return div.innerHTML;
       }
 
+      const moodToOtterState = {
+        gaming: 'playing',
+        studying: 'focused',
+        resting: 'happy',
+        sleeping: 'sleeping',
+        eating: 'eating',
+        out: 'excited',
+      };
+
       function renderSharedView(data) {
         // 혜달이 렌더링
-        OtterSVG.mount('otter-container', data.mood || 'default');
+        const otterState = moodToOtterState[data.mood] || data.mood || 'default';
+        OtterSVG.mount('otter-container', otterState);
 
         const $content = document.getElementById('shared-content');
         if (!$content) return;
@@ -180,15 +166,6 @@
         // 메시지
         if (data.message) {
           html += `<div class="shared-message">"${escapeHtml(data.message)}"</div>`;
-        }
-
-        // 타이머 상태
-        if (data.timerRunning) {
-          if (data.timerBreak) {
-            html += `<div class="shared-timer-status break">☕ 휴식 중</div>`;
-          } else {
-            html += `<div class="shared-timer-status focus">🍅 집중 중</div>`;
-          }
         }
 
         // 상태바
@@ -214,11 +191,6 @@
         // 레벨
         if (data.level) {
           html += `<p style="font-size:0.9rem;color:var(--text-light);margin-top:8px">혜달이 Lv.${data.level}</p>`;
-        }
-
-        // 뽀모도로 횟수
-        if (data.pomoCount) {
-          html += `<p style="font-size:0.85rem;color:var(--text-light)">오늘 뽀모도로 ${data.pomoCount}회 완료!</p>`;
         }
 
         // 할 일 목록

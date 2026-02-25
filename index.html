@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>혜달이의 상태 - Haedal Center</title>
+  <title>혜달이의 상태 - Hye-mily check</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2bcdee">
   <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,12 +18,12 @@
     <!-- 헤더 (Stitch 스타일) -->
     <header class="header">
       <div class="header__center">
-        <h1 class="header__title">Haedal Center</h1>
+        <h1 class="header__title">Hye-mily check</h1>
         <div class="header__badge">
           <span class="header__dot"></span> Online
         </div>
       </div>
-      <button id="share-btn" class="header__action-btn" title="상태 공유하기">
+      <button id="share-btn" class="header__action-btn" title="링크 공유하기">
         <span class="material-symbols-outlined">share</span>
       </button>
     </header>
@@ -91,13 +91,13 @@
 
     <!-- 탭 네비게이션 -->
     <nav class="tabs">
-      <button class="tab tab--active" data-tab="timer">
-        <span class="material-symbols-outlined tab__icon">timer</span>
-        타이머
+      <button class="tab tab--active" data-tab="mood">
+        <span class="material-symbols-outlined tab__icon">person</span>
+        내 상태
       </button>
-      <button class="tab" data-tab="mood">
-        <span class="material-symbols-outlined tab__icon">mood</span>
-        기분
+      <button class="tab" data-tab="care-log">
+        <span class="material-symbols-outlined tab__icon">history</span>
+        돌봄 기록
       </button>
       <button class="tab" data-tab="todo">
         <span class="material-symbols-outlined tab__icon">checklist</span>
@@ -107,74 +107,53 @@
 
     <!-- 탭 컨텐츠 -->
     <div class="tab-content">
-      <!-- 타이머 탭 -->
-      <section id="tab-timer" class="tab-panel tab-panel--active">
-        <div class="timer">
-          <div id="timer-display" class="timer__display">25:00</div>
-          <div class="timer__label">
-            <span id="timer-mode">집중 시간</span>
-          </div>
-          <div class="timer__controls">
-            <button id="timer-start" class="btn btn--primary">시작</button>
-            <button id="timer-pause" class="btn btn--secondary" hidden>일시정지</button>
-            <button id="timer-reset" class="btn btn--outline">초기화</button>
-          </div>
-          <div class="timer__settings">
-            <label>
-              집중: <input id="focus-min" type="number" value="25" min="1" max="90" class="timer__input"> 분
-            </label>
-            <label>
-              휴식: <input id="break-min" type="number" value="5" min="1" max="30" class="timer__input"> 분
-            </label>
-          </div>
-          <div class="timer__history">
-            <p>오늘 완료한 뽀모도로: <strong id="pomo-count">0</strong>회</p>
+      <!-- 내 상태 탭 -->
+      <section id="tab-mood" class="tab-panel tab-panel--active">
+        <div class="mood">
+          <p class="mood__question">지금 뭐 하고 있어?</p>
+          <div class="mood__grid">
+            <button class="mood__btn" data-mood="gaming" data-emoji="🎮">
+              <span class="mood__emoji">🎮</span>
+              <span class="mood__name">게임중</span>
+            </button>
+            <button class="mood__btn" data-mood="studying" data-emoji="📚">
+              <span class="mood__emoji">📚</span>
+              <span class="mood__name">공부중</span>
+            </button>
+            <button class="mood__btn" data-mood="resting" data-emoji="☕">
+              <span class="mood__emoji">☕</span>
+              <span class="mood__name">휴식중</span>
+            </button>
+            <button class="mood__btn" data-mood="sleeping" data-emoji="😴">
+              <span class="mood__emoji">😴</span>
+              <span class="mood__name">쿨쿨</span>
+            </button>
+            <button class="mood__btn" data-mood="eating" data-emoji="🍚">
+              <span class="mood__emoji">🍚</span>
+              <span class="mood__name">밥먹는중</span>
+            </button>
+            <button class="mood__btn" data-mood="out" data-emoji="🚶">
+              <span class="mood__emoji">🚶</span>
+              <span class="mood__name">외출중</span>
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- 기분 탭 -->
-      <section id="tab-mood" class="tab-panel">
-        <div class="mood">
-          <p class="mood__question">지금 기분이 어때요?</p>
-          <div class="mood__grid">
-            <button class="mood__btn" data-mood="happy" data-emoji="😊">
-              <span class="mood__emoji">😊</span>
-              <span class="mood__name">행복해</span>
-            </button>
-            <button class="mood__btn" data-mood="focused" data-emoji="🔥">
-              <span class="mood__emoji">🔥</span>
-              <span class="mood__name">집중!</span>
-            </button>
-            <button class="mood__btn" data-mood="tired" data-emoji="😴">
-              <span class="mood__emoji">😴</span>
-              <span class="mood__name">피곤해</span>
-            </button>
-            <button class="mood__btn" data-mood="stressed" data-emoji="😰">
-              <span class="mood__emoji">😰</span>
-              <span class="mood__name">힘들어</span>
-            </button>
-            <button class="mood__btn" data-mood="excited" data-emoji="🥳">
-              <span class="mood__emoji">🥳</span>
-              <span class="mood__name">신나!</span>
-            </button>
-            <button class="mood__btn" data-mood="bored" data-emoji="😑">
-              <span class="mood__emoji">😑</span>
-              <span class="mood__name">심심해</span>
-            </button>
-            <button class="mood__btn" data-mood="loved" data-emoji="🥰">
-              <span class="mood__emoji">🥰</span>
-              <span class="mood__name">사랑해</span>
-            </button>
-            <button class="mood__btn" data-mood="hungry" data-emoji="🍽️">
-              <span class="mood__emoji">🍽️</span>
-              <span class="mood__name">배고파</span>
-            </button>
+      <!-- 돌봄 기록 탭 -->
+      <section id="tab-care-log" class="tab-panel">
+        <div class="care-log">
+          <div id="care-today-summary" class="care-log__summary">
+            <p class="care-log__summary-title">오늘의 돌봄</p>
+            <div class="care-log__summary-counts">
+              <span class="care-log__badge">총 <strong id="care-today-total">0</strong>회</span>
+              <span class="care-log__badge care-log__badge--feed">🐚 <strong id="care-today-feed">0</strong></span>
+              <span class="care-log__badge care-log__badge--wash">🧼 <strong id="care-today-wash">0</strong></span>
+              <span class="care-log__badge care-log__badge--pet">💕 <strong id="care-today-pet">0</strong></span>
+            </div>
           </div>
-          <div id="mood-log" class="mood__log">
-            <h3>기분 기록</h3>
-            <ul id="mood-log-list"></ul>
-          </div>
+          <ul id="care-log-list" class="care-log__list"></ul>
+          <p id="care-log-empty" class="care-log__empty">아직 돌봄 기록이 없어요!</p>
         </div>
       </section>
 
@@ -204,6 +183,11 @@
       <p class="care__exp-text"><span id="exp-text">0</span> / <span id="exp-max">100</span></p>
     </div>
 
+    <!-- 메시지 입력 -->
+    <div class="message-input">
+      <input id="care-message" type="text" class="message-input__field" placeholder="한마디 남기기... 💬" maxlength="30">
+    </div>
+
     <!-- 하단 액션 독 (Stitch 스타일 원형 버튼) -->
     <footer class="bottom-dock">
       <div class="dock-action">
@@ -229,17 +213,21 @@
     <!-- 파티클 컨테이너 -->
     <div id="particles" class="particles"></div>
 
+    <!-- 돌봄 알림 토스트 -->
+    <div id="care-toast" class="care-toast" hidden>
+      <p id="care-toast-text"></p>
+    </div>
+
     <!-- 공유 모달 -->
     <div id="share-modal" class="modal" hidden>
       <div class="modal__backdrop"></div>
       <div class="modal__content">
-        <h2>혜달이 상태 공유하기</h2>
+        <h2>혜달이 페이지 공유하기</h2>
         <p>이 링크를 연인이나 가족에게 보내주세요!</p>
         <div class="modal__link-area">
           <input id="share-url" type="text" class="modal__link-input" readonly>
           <button id="copy-url" class="btn btn--primary">복사</button>
         </div>
-        <div id="share-preview" class="share-preview"></div>
         <button id="close-modal" class="btn btn--outline modal__close">닫기</button>
       </div>
     </div>
@@ -253,7 +241,7 @@
   <script src="js/otter-svg.js"></script>
   <script src="js/api.js"></script>
   <script src="js/tamagotchi.js"></script>
-  <script src="js/timer.js"></script>
+
   <script src="js/mood.js"></script>
   <script src="js/todo.js"></script>
   <script src="js/share.js"></script>

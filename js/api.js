@@ -45,13 +45,43 @@ const API = (() => {
     }
   }
 
-  async function doAction(action) {
+  async function doAction(action, message) {
     try {
-      const res = await fetch('/api/action/' + action, { method: 'POST' });
+      const body = {};
+      if (message) body.message = message;
+      const res = await fetch('/api/action/' + action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
       if (!res.ok) throw new Error(res.status);
       return await res.json();
     } catch (e) {
       return { ok: false, msg: '서버 연결에 실패했어요 😢' };
+    }
+  }
+
+  async function setMood(mood) {
+    try {
+      const res = await fetch('/api/mood', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood }),
+      });
+      if (!res.ok) throw new Error(res.status);
+      return await res.json();
+    } catch (e) {
+      return { ok: false, msg: '서버 연결에 실패했어요 😢' };
+    }
+  }
+
+  async function getLogs() {
+    try {
+      const res = await fetch('/api/logs');
+      if (!res.ok) throw new Error(res.status);
+      return await res.json();
+    } catch (e) {
+      return { logs: [], today: { total: 0 } };
     }
   }
 
@@ -77,5 +107,5 @@ const API = (() => {
     return connected;
   }
 
-  return { fetchStats, doAction, startPolling, stopPolling, isConnected };
+  return { fetchStats, doAction, setMood, getLogs, startPolling, stopPolling, isConnected };
 })();
