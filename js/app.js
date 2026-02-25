@@ -130,9 +130,14 @@
     if ($expText) $expText.textContent = stats.exp;
     if ($expMax) $expMax.textContent = stats.expNeeded;
 
-    // 서버에서 mood가 오면 동기화
+    // 서버에서 mood가 오면 동기화 + 말풍선에 표시
     if (stats.mood) {
       Mood.setFromServer(stats.mood);
+      const moodName = Mood.getMoodName(stats.mood);
+      if (moodName) {
+        const otterState = otterStateMap[stats.mood] || 'default';
+        updateOtter(otterState, moodName);
+      }
     }
 
     // 돌봄 알림 감지 (B6) - lastActionAt가 바뀌면 누군가 돌봄
@@ -194,11 +199,15 @@
       // 수동 기분 선택 중이면 스킵
       if (manualMoodTimeout) return;
 
+      const mood = Mood.getCurrent();
+      const moodName = mood ? Mood.getMoodName(mood) : '';
       const details = Tamagotchi.getMoodDetails();
       const $statusText = document.getElementById('otter-status-text');
       if ($statusText) {
-        $statusText.textContent = details.message;
+        $statusText.textContent = moodName || details.message;
       }
+      // mood가 있으면 말풍선도 유지
+      if (moodName) showSpeech(moodName, 12000);
     }, 10000);
   }
 
@@ -413,7 +422,8 @@
     // 기분 모듈 초기화 (수동 기분 선택 → 30초 동안 자동 전환 잠금)
     Mood.init((mood) => {
       const otterState = otterStateMap[mood] || 'default';
-      updateOtter(otterState, moodMessages[mood] || '');
+      const moodName = Mood.getMoodName(mood);
+      updateOtter(otterState, moodName || '');
 
       // 수동 기분 선택 후 30초 동안 자동 전환 잠금
       clearTimeout(manualMoodTimeout);
